@@ -189,6 +189,10 @@ input.hi{border-color:var(--blu)!important;background:var(--blu-bg)!important}
           <input type="text" id="f-strasse" placeholder="z.B. B171, Km 43,2">
           <button class="gps-btn" id="gb1" onclick="fillGPS('f-strasse','gb1')">📍</button>
         </div>
+      <div class="fld r2" style="margin-top:8px">
+        <div><label>GPS Breitengrad</label><input type="text" id="f-lat" placeholder="47.30512" readonly style="background:#f8f0e8;border-color:#e8d0b0;color:var(--tx2);font-family:var(--fn)"></div>
+        <div><label>GPS Längengrad</label><input type="text" id="f-lon" placeholder="11.06834" readonly style="background:#f8f0e8;border-color:#e8d0b0;color:var(--tx2);font-family:var(--fn)"></div>
+      </div>
       </div>
       <div class="fld r2">
         <div><label>Gemeinde</label>
@@ -326,19 +330,17 @@ function startApp(){
 }
 
 function loadOCR(){
-  if(ocrW) return;
-  Tesseract.createWorker('deu+eng').then(function(w){
-    ocrW = w;
-    console.log('OCR bereit');
-  }).catch(function(e){ console.warn('OCR Fehler:', e); });
+  // Tesseract v5: no pre-init needed, use Tesseract.recognize() directly
+  console.log('OCR bereit (Tesseract v5)');
 }
 
 async function runOCR(b64){
-  if(!ocrW) return '';
   try{
-    var r = await ocrW.recognize(b64);
-    return r.data.text || '';
-  } catch(e){ return ''; }
+    var result = await Tesseract.recognize(b64, 'deu', {
+      logger: function(m){ if(m.status === 'recognizing text') console.log('OCR: ' + Math.round(m.progress*100) + '%'); }
+    });
+    return result.data.text || '';
+  } catch(e){ console.warn('OCR Fehler:', e); return ''; }
 }
 
 async function fillGPS(fid, bid){
@@ -676,6 +678,8 @@ function collectOrt(){
     datum: document.getElementById('f-datum').value,
     uhrzeit: document.getElementById('f-uhrzeit').value,
     strasse: document.getElementById('f-strasse').value,
+    lat: document.getElementById('f-lat') ? document.getElementById('f-lat').value : '',
+    lon: document.getElementById('f-lon') ? document.getElementById('f-lon').value : '',
     gem: document.getElementById('f-gem').value,
     richtung: document.getElementById('f-richtung').value,
     wetter: document.getElementById('f-wetter').value,
@@ -703,7 +707,7 @@ function loadSaved(){
   startApp();
   setTimeout(function(){
     var o = d.ort || {};
-    var ids = ['datum','uhrzeit','strasse','gem','richtung','wetter','strverh','licht','vmax','fahr','hergang','mass'];
+    var ids = ['datum','uhrzeit','strasse','lat','lon','gem','richtung','wetter','strverh','licht','vmax','fahr','hergang','mass'];
     ids.forEach(function(k){ var el = document.getElementById('f-'+k); if(el && o[k]) el.value = o[k]; });
     FZ = d.FZ || []; fzc = Math.max.apply(null, [0].concat(FZ.map(function(f){ return f.id; }))) + 1;
     FZP = d.FZP || {};
@@ -725,6 +729,7 @@ function buildSummary(){
     + '<div class="srow"><span class="sl">Uhrzeit</span><span class="sv">'+(o.uhrzeit||'–')+'</span></div>'
     + '<div class="srow"><span class="sl">Straße</span><span class="sv">'+(o.strasse||'–')+'</span></div>'
     + '<div class="srow"><span class="sl">Gemeinde</span><span class="sv">'+o.gem+'</span></div>'
+    + (o.lat ? '<div class="srow"><span class="sl">GPS</span><span class="sv" style="font-family:monospace;font-size:13px">'+o.lat+', '+o.lon+'</span></div>' : '')
     + '<div class="srow"><span class="sl">Wetter</span><span class="sv">'+o.wetter+'</span></div>'
     + '</div>';
 
@@ -795,6 +800,7 @@ async function buildPDF(){
   sec('1. UNFALLORT & VERHÄLTNISSE');
   row('Datum:', o.datum); row('Uhrzeit:', o.uhrzeit); row('Straße:', o.strasse);
   row('Gemeinde:', o.gem); row('Richtung / KM:', o.richtung);
+  if(o.lat && o.lon) row('GPS-Koordinaten:', o.lat + ', ' + o.lon + ' (WGS84)');
   row('Wetter:', o.wetter); row('Straßenzustand:', o.strverh); row('Licht:', o.licht);
   row('Höchstgeschw.:', o.vmax); row('Fahrtrichtung:', o.fahr);
   if(o.hergang){ chk(); doc.setFontSize(9); doc.setFont('helvetica','bold'); doc.setTextColor(100,120,150); doc.text('Hergang:',mg,y); y+=5; doc.setFont('helvetica','normal'); doc.setTextColor(13,20,32); var lh=doc.splitTextToSize(o.hergang,cw); doc.text(lh,mg,y); y+=lh.length*5+2; }
@@ -836,7 +842,8 @@ async function exportPDF(){
   try{
     var doc = await buildPDF();
     var o = collectOrt();
-    var fname = ('Unfall_' + (o.datum||lDate()) + '_' + (o.strasse||'PI-Telfs') + '.pdf').replace(/[^a-zA-Z0-9_\-.]/g, '_');
+    var prefix = ('Unfall_' + (o.datum||lDate()) + '_' + (o.strasse||'PI-Telfs')).replace(/[^a-zA-Z0-9_\-]/g, '_');
+    var fname = prefix + '.pdf';
     var blob = doc.output('blob');
     var url = URL.createObjectURL(blob);
     var a = document.createElement('a'); a.href = url; a.download = fname; a.click();
@@ -846,9 +853,13 @@ async function exportPDF(){
         var subj = encodeURIComponent('Unfallprotokoll Sachschaden ' + o.datum + ' ' + o.strasse);
         var body = encodeURIComponent('Sehr geehrte Kolleginnen und Kollegen,\n\nanbei das Unfallprotokoll (Sachschaden) vom ' + o.datum + ' um ' + o.uhrzeit + ' Uhr, Ort: ' + o.strasse + ', ' + o.gem + '.\n\nMit freundlichen Grüßen\nPI Telfs');
         window.location.href = 'mailto:' + mail + '?subject=' + subj + '&body=' + body;
-        toast('✓ PDF gespeichert · Mail-App geöffnet');
+        toast('✓ PDF + Fotos gespeichert · Mail-App geöffnet');
       }, 800);
-    } else { toast('✓ PDF heruntergeladen'); }
+      setTimeout(function(){ downloadAllPhotos(prefix); }, 400);
+    } else {
+      toast('✓ PDF + Fotos werden heruntergeladen…');
+      downloadAllPhotos(prefix);
+    }
   } catch(e){ console.error(e); alert('PDF-Fehler: ' + e.message); }
 }
 
