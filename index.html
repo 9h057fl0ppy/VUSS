@@ -189,9 +189,16 @@ input.hi{border-color:var(--blu)!important;background:var(--blu-bg)!important}
           <input type="text" id="f-strasse" placeholder="z.B. B171, Km 43,2">
           <button class="gps-btn" id="gb1" onclick="fillGPS('f-strasse','gb1')">📍</button>
         </div>
-      <div class="fld r2" style="margin-top:8px">
-        <div><label>GPS Breitengrad</label><input type="text" id="f-lat" placeholder="47.30512" readonly style="background:#f8f0e8;border-color:#e8d0b0;color:var(--tx2);font-family:var(--fn)"></div>
-        <div><label>GPS Längengrad</label><input type="text" id="f-lon" placeholder="11.06834" readonly style="background:#f8f0e8;border-color:#e8d0b0;color:var(--tx2);font-family:var(--fn)"></div>
+      <div id="gps-box" style="display:none;margin-top:8px;background:#fff8f0;border:1.5px solid #e8c890;border-radius:10px;padding:12px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+          <div style="font-size:13px;font-weight:700;color:#8a5a00;text-transform:uppercase;letter-spacing:.5px">📍 GPS-Position</div>
+        </div>
+        <div style="font-family:monospace;font-size:16px;font-weight:700;color:var(--tx);background:var(--surf2);border:1.5px solid var(--bdr);border-radius:7px;padding:10px 12px;margin-bottom:8px;letter-spacing:.5px" id="gps-coords-display">–</div>
+        <input type="hidden" id="f-lat"><input type="hidden" id="f-lon">
+        <a id="gmaps-link" href="#" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:8px;background:linear-gradient(135deg,#1a6fff,#0d4fcf);color:#fff;border-radius:8px;padding:12px;font-family:var(--fn);font-size:14px;font-weight:800;text-decoration:none;letter-spacing:.5px">
+          <span style="font-size:18px">🗺️</span> IN GOOGLE MAPS ÖFFNEN
+        </a>
+        <div style="font-size:11px;color:var(--dim);margin-top:7px;text-align:center">Link auch im PDF enthalten – am PC einfach kopieren</div>
       </div>
       </div>
       <div class="fld r2">
@@ -715,6 +722,16 @@ function loadSaved(){
     LEP = d.LEP || {};
     EP = d.EP || [];
     renderFZ(); renderL(); renderEP();
+    // Restore GPS box if coords exist
+    var lat = document.getElementById('f-lat'), lon = document.getElementById('f-lon');
+    if(lat && lat.value && lon && lon.value){
+      var gpsBox = document.getElementById('gps-box');
+      var coordsDisplay = document.getElementById('gps-coords-display');
+      var mapsLink = document.getElementById('gmaps-link');
+      if(gpsBox) gpsBox.style.display = 'block';
+      if(coordsDisplay) coordsDisplay.textContent = lat.value + ', ' + lon.value;
+      if(mapsLink) mapsLink.href = 'https://maps.google.com/?q=' + lat.value + ',' + lon.value;
+    }
     toast('✓ Entwurf geladen');
   }, 200);
 }
@@ -729,7 +746,7 @@ function buildSummary(){
     + '<div class="srow"><span class="sl">Uhrzeit</span><span class="sv">'+(o.uhrzeit||'–')+'</span></div>'
     + '<div class="srow"><span class="sl">Straße</span><span class="sv">'+(o.strasse||'–')+'</span></div>'
     + '<div class="srow"><span class="sl">Gemeinde</span><span class="sv">'+o.gem+'</span></div>'
-    + (o.lat ? '<div class="srow"><span class="sl">GPS</span><span class="sv" style="font-family:monospace;font-size:13px">'+o.lat+', '+o.lon+'</span></div>' : '')
+    + (o.lat ? '<div class="srow"><span class="sl">GPS</span><span class="sv"><div style="font-family:monospace;font-size:13px;margin-bottom:4px">'+o.lat+', '+o.lon+'</div><a href="https://maps.google.com/?q='+o.lat+','+o.lon+'" target="_blank" style="display:inline-flex;align-items:center;gap:5px;background:rgba(26,95,255,.1);border:1.5px solid rgba(26,95,255,.2);color:var(--blu);border-radius:6px;padding:5px 10px;font-size:12px;font-weight:700;text-decoration:none">🗺️ Google Maps</a></span></div>' : '')
     + '<div class="srow"><span class="sl">Wetter</span><span class="sv">'+o.wetter+'</span></div>'
     + '</div>';
 
@@ -800,7 +817,10 @@ async function buildPDF(){
   sec('1. UNFALLORT & VERHÄLTNISSE');
   row('Datum:', o.datum); row('Uhrzeit:', o.uhrzeit); row('Straße:', o.strasse);
   row('Gemeinde:', o.gem); row('Richtung / KM:', o.richtung);
-  if(o.lat && o.lon) row('GPS-Koordinaten:', o.lat + ', ' + o.lon + ' (WGS84)');
+  if(o.lat && o.lon){
+    row('GPS-Koordinaten:', o.lat + ', ' + o.lon + ' (WGS84)');
+    row('Google Maps Link:', 'maps.google.com/?q=' + o.lat + ',' + o.lon);
+  }
   row('Wetter:', o.wetter); row('Straßenzustand:', o.strverh); row('Licht:', o.licht);
   row('Höchstgeschw.:', o.vmax); row('Fahrtrichtung:', o.fahr);
   if(o.hergang){ chk(); doc.setFontSize(9); doc.setFont('helvetica','bold'); doc.setTextColor(100,120,150); doc.text('Hergang:',mg,y); y+=5; doc.setFont('helvetica','normal'); doc.setTextColor(13,20,32); var lh=doc.splitTextToSize(o.hergang,cw); doc.text(lh,mg,y); y+=lh.length*5+2; }
