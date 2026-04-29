@@ -144,6 +144,14 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 .chip-ok{background:var(--safe-bg);color:var(--safe);border:1.5px solid rgba(0,135,90,.2)}
 .chip-warn{background:var(--accent-bg);color:var(--accent);border:1.5px solid var(--accent-border)}
 
+
+/* ── AI EXTRACTION ── */
+.ai-loading-wrap{position:relative}
+.ai-badge{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,rgba(26,95,255,.12),rgba(26,95,255,.06));border:1.5px solid rgba(26,95,255,.3);border-radius:8px;padding:7px 12px;font-size:13px;font-weight:700;color:var(--info);margin-top:6px;width:100%}
+.ai-badge .ai-spin{display:inline-block;animation:spin .7s linear infinite}
+.ai-success{background:linear-gradient(135deg,rgba(0,135,90,.12),rgba(0,135,90,.06));border-color:rgba(0,135,90,.3);color:var(--safe)}
+input.ai-filled{border-color:var(--info)!important;background:rgba(26,95,255,.05)!important}
+
 /* ── TOAST ── */
 #toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);background:#1a1a2e;color:#fff;font-weight:700;font-size:14px;padding:12px 20px;border-radius:30px;opacity:0;transition:all .3s;z-index:999;pointer-events:none;white-space:nowrap}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
@@ -515,14 +523,20 @@ function saveFzField(id){
 function addFzPhoto(fzId){
   const input=document.createElement('input');
   input.type='file';input.accept='image/*';input.capture='environment';
-  input.onchange=e=>{
+  input.onchange=async e=>{
     const file=e.target.files[0];if(!file)return;
-    const reader=new FileReader();
-    reader.onload=ev=>{
+    compressImage(file, async b64=>{
       if(!fzPhotoData[fzId])fzPhotoData[fzId]=[];
-      fzPhotoData[fzId].push(ev.target.result);
+      fzPhotoData[fzId].push(b64);
       renderFzPhotos(fzId);
-    };reader.readAsDataURL(file);
+      const kzField=document.getElementById('fz-kz-'+fzId);
+      if(kzField&&!kzField.value.trim()){
+        showAiBadge('fz-kz-'+fzId,'🔍 KI erkennt Kennzeichen…');
+        const result=await extractKennzeichen(b64);
+        if(result){kzField.value=result;kzField.classList.add('ai-filled');saveFzField(fzId);showAiBadge('fz-kz-'+fzId,'✅ Kennzeichen erkannt: '+result,true);}
+        else{hideAiBadge('fz-kz-'+fzId);}
+      }
+    });
   };input.click();
 }
 
@@ -630,12 +644,54 @@ function saveLenkerField(id){
 
 function captureLenkerPhoto(id,type,input){
   const file=input.files[0];if(!file)return;
-  const reader=new FileReader();
-  reader.onload=ev=>{
+  compressImage(file, async b64=>{
     if(!lenkerPhotoData[id])lenkerPhotoData[id]={fs:null,zul:null};
-    lenkerPhotoData[id][type]=ev.target.result;
+    lenkerPhotoData[id][type]=b64;
     renderLenker();
-  };reader.readAsDataURL(file);
+    if(type==='fs'){
+      showAiBadge('l-name-'+id,'🔍 KI liest Führerschein…');
+      const result=await extractFuehrerschein(b64);
+      hideAiBadge('l-name-'+id);
+      if(result){
+        if(result.name&&!document.getElementById('l-name-'+id)?.value){
+          document.getElementById('l-name-'+id).value=result.name;
+          document.getElementById('l-name-'+id).classList.add('ai-filled');
+        }
+        if(result.gebdat&&!document.getElementById('l-geb-'+id)?.value){
+          document.getElementById('l-geb-'+id).value=result.gebdat;
+          document.getElementById('l-geb-'+id).classList.add('ai-filled');
+        }
+        if(result.fskl&&!document.getElementById('l-fskl-'+id)?.value){
+          document.getElementById('l-fskl-'+id).value=result.fskl;
+          document.getElementById('l-fskl-'+id).classList.add('ai-filled');
+        }
+        saveLenkerField(id);
+        const filled=[result.name,result.gebdat,result.fskl].filter(Boolean);
+        if(filled.length)toast('✅ FS erkannt: '+result.name+(result.gebdat?' · geb. '+result.gebdat:''));
+        else toast('⚠️ Führerschein nicht lesbar');
+      }
+    }
+    if(type==='zul'){
+      showAiBadge('l-fz-'+id,'🔍 KI liest Zulassungsschein…');
+      const result=await extractZulassung(b64);
+      hideAiBadge('l-fz-'+id);
+      if(result){
+        // Try to fill matching vehicle KZ
+        if(result.kz){
+          const matchFz=fahrzeuge.find(f=>!f.kz||f.kz.trim()==='');
+          if(matchFz){
+            document.getElementById('fz-kz-'+matchFz.id).value=result.kz;
+            document.getElementById('fz-kz-'+matchFz.id).classList.add('ai-filled');
+            if(result.marke&&!matchFz.marke)document.getElementById('fz-marke-'+matchFz.id).value=result.marke;
+            if(result.modell&&!matchFz.modell)document.getElementById('fz-modell-'+matchFz.id).value=result.modell;
+            saveFzField(matchFz.id);
+          }
+        }
+        saveLenkerField(id);
+        toast('✅ Zulassung erkannt: '+(result.kz||'')+(result.marke?' · '+result.marke:''));
+      }
+    }
+  });
 }
 
 function delLenkerPhoto(id,type){
@@ -899,6 +955,81 @@ async function exportPDFDownload(){
     doc.save(fname);
     toast('✓ PDF gespeichert');
   }catch(e){console.error(e);alert('Fehler: '+e.message);}
+}
+
+
+// ═══ AI EXTRACTION ════════════════════════════════════════════
+function compressImage(file, callback){
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    const img=new Image();
+    img.onload=()=>{
+      const cv=document.createElement('canvas');
+      const maxW=1200;
+      const scale=Math.min(1,maxW/img.width);
+      cv.width=img.width*scale;cv.height=img.height*scale;
+      cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);
+      callback(cv.toDataURL('image/jpeg',0.82));
+    };img.src=ev.target.result;
+  };reader.readAsDataURL(file);
+}
+
+async function callClaude(b64, prompt){
+  const base64=b64.split(',')[1];
+  const mediaType=b64.startsWith('data:image/png')?'image/png':'image/jpeg';
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-haiku-4-5-20251001',
+        max_tokens:300,
+        messages:[{role:'user',content:[
+          {type:'image',source:{type:'base64',media_type:mediaType,data:base64}},
+          {type:'text',text:prompt}
+        ]}]
+      })
+    });
+    const data=await resp.json();
+    return data.content?.[0]?.text||null;
+  }catch(e){console.error('Claude API error:',e);return null;}
+}
+
+async function extractKennzeichen(b64){
+  const txt=await callClaude(b64,
+    'Erkenne das Kraftfahrzeugkennzeichen auf diesem Bild. Antworte NUR mit dem Kennzeichen (z.B. IL-12345) oder dem Wort KEINES wenn kein Kennzeichen erkennbar ist. Keine weitere Erklärung.');
+  if(!txt||txt.includes('KEINES')||txt.length>15)return null;
+  return txt.trim().toUpperCase();
+}
+
+async function extractFuehrerschein(b64){
+  const txt=await callClaude(b64,
+    'Das ist ein Foto eines österreichischen oder deutschen Führerscheins. Extrahiere: Familienname (Feld 1), Vorname (Feld 2), Geburtsdatum (Feld 3 im Format YYYY-MM-DD), Führerscheinklassen (Feld 9/10). Antworte NUR mit JSON ohne Markdown, Beispiel: {"name":"Mustermann Max","gebdat":"1985-03-15","fskl":"B, BE"}. Bei unlesbaren Feldern leeren String verwenden.');
+  if(!txt)return null;
+  try{return JSON.parse(txt.replace(/```json|```/g,'').trim());}
+  catch{return null;}
+}
+
+async function extractZulassung(b64){
+  const txt=await callClaude(b64,
+    'Das ist ein Foto eines österreichischen Zulassungsscheins (Fahrzeugschein). Extrahiere: Kennzeichen, Marke/Hersteller, Modell/Typ. Antworte NUR mit JSON ohne Markdown, Beispiel: {"kz":"IL-12345","marke":"Volkswagen","modell":"Golf"}. Bei unlesbaren Feldern leeren String verwenden.');
+  if(!txt)return null;
+  try{return JSON.parse(txt.replace(/```json|```/g,'').trim());}
+  catch{return null;}
+}
+
+function showAiBadge(fieldId, msg, success=false){
+  hideAiBadge(fieldId);
+  const field=document.getElementById(fieldId);if(!field)return;
+  const badge=document.createElement('div');
+  badge.className='ai-badge'+(success?' ai-success':'');
+  badge.id='ai-badge-'+fieldId;
+  badge.innerHTML=success?msg:`<span class="ai-spin">🔍</span> ${msg}`;
+  field.parentNode.insertBefore(badge,field.nextSibling);
+  if(success)setTimeout(()=>hideAiBadge(fieldId),4000);
+}
+function hideAiBadge(fieldId){
+  const b=document.getElementById('ai-badge-'+fieldId);if(b)b.remove();
 }
 
 // ═══ UTILS ════════════════════════════════════════════════════
