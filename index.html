@@ -279,10 +279,11 @@ input.hi { border-color:var(--blu) !important; background:var(--blu-bg) !importa
           <div style="font-size:22px">&#x1F512;</div>
           <div><div style="font-size:14px;font-weight:800">Cryptshare BMI</div><div style="font-size:12px;color:var(--dim)">Sicherer Dienstweg - cryptshare.bmi.gv.at</div></div>
         </div>
-        <div class="fld"><label>Absender (Deine Dienstmail)</label>
-          <input type="email" id="cs-sender" placeholder="vorname.nachname@polizei.gv.at"></div>
-        <div class="fld"><label>Empfaenger E-Mail</label>
-          <input type="email" id="cs-recipient" placeholder="staatsanwaltschaft@justiz.gv.at"></div>
+        <div class="fld"><label>Deine E-Mail-Adresse (Absender)</label>
+          <input type="email" id="cs-sender" placeholder="z.B. max.mustermann@gmail.com">
+          <div style="font-size:11px;color:var(--dim);margin-top:5px">Hierhin wird der Bestaetigungscode (OTP) geschickt - private oder Dienstmail.</div></div>
+        <div class="fld"><label>Empfaenger E-Mail (Wer den Link bekommt)</label>
+          <input type="email" id="cs-recipient" placeholder="z.B. inspektion.telfs@polizei.gv.at"></div>
 
         <!-- STEP 1: Request OTP -->
         <div id="cs-step1">
@@ -292,7 +293,7 @@ input.hi { border-color:var(--blu) !important; background:var(--blu-bg) !importa
         <!-- STEP 2: Enter OTP -->
         <div id="cs-step2" style="display:none">
           <div style="background:var(--ok-bg);border:1.5px solid rgba(0,135,90,.3);border-radius:8px;padding:10px;margin-top:8px;font-size:13px;color:var(--ok);font-weight:600">
-            OTP wurde an deine Dienstmail geschickt. Bitte eintragen:
+            Ein Bestaetigungscode wurde an deine E-Mail geschickt. Bitte eintragen:
           </div>
           <div class="fld" style="margin-top:10px"><label>OTP Code</label>
             <input type="text" id="cs-otp" placeholder="z.B. 123456" style="font-family:monospace;font-size:22px;letter-spacing:4px;text-align:center"></div>
