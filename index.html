@@ -1045,11 +1045,32 @@ function buildPDF() {
   function addImg(b64, lbl) {
     if (!b64) return; chk();
     try {
-      doc.addImage(b64, 'JPEG', mg, y, 80, 50);
+      // Get real image dimensions to preserve aspect ratio
+      var imgData = doc.getImageProperties(b64);
+      var maxW = cw;          // full content width
+      var maxH = 100;         // max height in mm
+      var ratio = imgData.width / imgData.height;
+      var iW, iH;
+      if (ratio >= 1) {
+        // Landscape or square
+        iW = Math.min(maxW, 120);
+        iH = iW / ratio;
+        if (iH > maxH) { iH = maxH; iW = iH * ratio; }
+      } else {
+        // Portrait
+        iH = Math.min(maxH, 80);
+        iW = iH * ratio;
+        if (iW > maxW) { iW = maxW; iH = iW / ratio; }
+      }
+      // Center image on page
+      var xPos = mg + (cw - iW) / 2;
+      chk();
+      if (y + iH > 275) { doc.addPage(); y = mg; }
+      doc.addImage(b64, 'JPEG', xPos, y, iW, iH);
       doc.setFontSize(8); doc.setTextColor(100, 120, 150);
-      if (lbl) doc.text(lbl, mg, y + 54);
-      y += 58;
-    } catch(e) {}
+      if (lbl) doc.text(lbl, mg, y + iH + 4);
+      y += iH + 8;
+    } catch(e) { console.warn('Image error:', e); }
   }
 
   FZ.forEach(function(fz) { saveFZ(fz.id); });
@@ -1150,52 +1171,55 @@ function getAllPhotos(prefix) {
   return list;
 }
 
-function doExport(openMail) {
-  toast('PDF wird erstellt...');
+async function doExport(openMail) {
+  toast('ZIP wird erstellt...');
   try {
-    var doc = buildPDF();
+    FZ.forEach(function(fz) { saveFZ(fz.id); });
+    LE.forEach(function(l) { saveL(l.id); });
     var o = collectOrt();
-    var prefix = ('Unfall_' + (o.datum || lDate()) + '_' + (o.strasse || 'PI-Telfs')).replace(/[^a-zA-Z0-9_\-]/g, '_');
+    var prefix = ('Unfall_' + (o.datum || lDate()) + '_' + (o.strasse || 'PI-Telfs')).replace(/[^a-zA-Z0-9_-]/g, '_');
 
-    // Download PDF
-    doc.save(prefix + '.pdf');
+    // Build PDF as blob
+    var doc = buildPDF();
+    var pdfBlob = doc.output('blob');
 
-    // Download all photos with delay
+    // Build ZIP
+    var zip = new JSZip();
+    var folder = zip.folder(prefix);
+    folder.file(prefix + '.pdf', pdfBlob);
+
+    // Add all photos
     var photos = getAllPhotos(prefix);
     for (var i = 0; i < photos.length; i++) {
-      (function(ph, delay) {
-        setTimeout(function() {
-          var a = document.createElement('a');
-          a.href = ph.src; a.download = ph.name; a.click();
-        }, delay);
-      })(photos[i], (i + 1) * 500);
+      var b64data = photos[i].src.split(',')[1];
+      folder.file(photos[i].name, b64data, { base64: true });
     }
 
-    var totalFiles = 1 + photos.length;
-    toast(totalFiles + ' Datei(en) werden gespeichert...');
+    // Generate and download ZIP
+    toast('ZIP wird komprimiert...');
+    var zipBlob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } });
+    var sizeMB = (zipBlob.size / 1024 / 1024).toFixed(1);
+    var url = URL.createObjectURL(zipBlob);
+    var a = document.createElement('a');
+    a.href = url; a.download = prefix + '.zip'; a.click();
+    setTimeout(function() { URL.revokeObjectURL(url); }, 5000);
+    toast('ZIP (' + sizeMB + ' MB) gespeichert!');
 
     if (openMail) {
       var mail = gv('f-mail');
       if (mail && mail.indexOf('@') > 0) {
         setTimeout(function() {
           var subj = encodeURIComponent('Unfallprotokoll Sachschaden ' + o.datum + ' ' + o.strasse);
-          var bodyTxt = 'Sehr geehrte Kolleginnen und Kollegen,\n\n'
-            + 'anbei das Unfallprotokoll (Sachschaden) vom ' + o.datum + ' um ' + o.uhrzeit + ' Uhr.\n\n'
-            + 'Unfallort: ' + o.strasse + ', ' + o.gem + '\n'
-            + (o.lat ? 'GPS: maps.google.com/?q=' + o.lat + ',' + o.lon + '\n' : '')
-            + '\nFolgende Dateien befinden sich im Downloads-Ordner und muessen manuell angehaengt werden:\n'
-            + '- ' + prefix + '.pdf (Unfallprotokoll)\n'
-            + (photos.length > 0 ? '- ' + photos.length + ' Foto(s) als JPG\n' : '')
-            + '\nMit freundlichen Gruessen\nPI Telfs';
+          var bodyTxt = 'Sehr geehrte Kolleginnen und Kollegen,\n\nDas Unfallprotokoll vom ' + o.datum + ' um ' + o.uhrzeit + ' Uhr ist als ZIP im Downloads-Ordner gespeichert.\n\nUnfallort: ' + o.strasse + ', ' + o.gem + '\n' + (o.lat ? 'GPS: maps.google.com/?q=' + o.lat + ',' + o.lon + '\n' : '') + '\nDatei: ' + prefix + '.zip (PDF + ' + photos.length + ' Fotos)\n\nMit freundlichen Gruessen\nPI Telfs';
           window.location.href = 'mailto:' + mail + '?subject=' + subj + '&body=' + encodeURIComponent(bodyTxt);
-        }, (photos.length + 1) * 500 + 500);
+        }, 1000);
       } else {
-        alert('Bitte zuerst eine gueltige E-Mail-Adresse eintragen.');
+        alert('Bitte E-Mail-Adresse eintragen.');
       }
     }
   } catch(e) {
     console.error(e);
-    alert('Fehler beim Export: ' + e.message);
+    alert('Fehler beim ZIP-Export: ' + e.message);
   }
 }
 
@@ -1286,7 +1310,7 @@ async function csVerifyAndUpload() {
     FZ.forEach(function(fz) { saveFZ(fz.id); });
     LE.forEach(function(l) { saveL(l.id); });
     var o = collectOrt();
-    var prefix = ('Unfall_' + (o.datum || lDate()) + '_' + (o.strasse || 'PI-Telfs')).replace(/[^a-zA-Z0-9_\-]/g, '_');
+    var prefix = ('Unfall_' + (o.datum || lDate()) + '_' + (o.strasse || 'PI-Telfs')).replace(/[^a-zA-Z0-9_-]/g, '_');
     var doc = buildPDF();
     var pdfBlob = doc.output('blob');
     csSetProgress(20, 'ZIP wird erstellt...', '', '὎6');
