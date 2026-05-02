@@ -159,8 +159,12 @@ input.hi { border-color:var(--blu) !important; background:var(--blu-bg) !importa
 <div id="s1" class="screen">
   <div class="topbar">
     <div class="logo">&#x1F694;</div>
-    <div><h1>Unfallaufnahme</h1><small>Sachschaden &middot; PI Telfs</small></div>
-    <button class="save-btn" onclick="saveData()">&#x1F4BE; Speichern</button>
+    <div>
+      <h1>Unfallaufnahme</h1>
+      <small>Sachschaden &middot; PI Telfs &middot; <span style="color:var(--acc);font-weight:700">v2.1</span></small>
+    </div>
+    <button onclick="showHelp()" style="margin-left:auto;background:var(--blu-bg);border:1.5px solid var(--blu-b);color:var(--blu);border-radius:8px;padding:7px 12px;font-size:18px;cursor:pointer;font-family:var(--fn);line-height:1">?</button>
+    <button class="save-btn" style="margin-left:6px" onclick="saveData()">&#x1F4BE;</button>
   </div>
   <div class="tabs">
     <button class="tp active" id="tp0" onclick="goTab(0)">1 Unfallort</button>
