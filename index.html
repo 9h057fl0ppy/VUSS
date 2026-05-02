@@ -6,175 +6,226 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#1a1a2e">
-<title>Unfallaufnahme - PI Telfs</title>
+<title>Unfallaufnahme v3.0 - PI Telfs</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://unpkg.com/tesseract.js@4.1.4/dist/tesseract.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://unpkg.com/tesseract.js@4.1.4/dist/tesseract.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root {
   --bg:#f2f4f8; --surf:#fff; --surf2:#eef1f7; --bdr:#d0d8e8;
   --tx:#0d1420; --tx2:#3a4a60; --dim:#6a7a90;
   --acc:#e05c00; --acc-bg:rgba(224,92,0,.08); --acc-b:rgba(224,92,0,.25);
-  --ok:#00875a; --ok-bg:rgba(0,135,90,.08);
-  --red:#c0392b; --red-bg:rgba(192,57,43,.08);
+  --ok:#00875a; --ok-bg:rgba(0,135,90,.08); --ok-b:rgba(0,135,90,.25);
+  --red:#c0392b; --red-bg:rgba(192,57,43,.08); --red-b:rgba(192,57,43,.2);
   --blu:#1a5fff; --blu-bg:rgba(26,95,255,.08); --blu-b:rgba(26,95,255,.25);
-  --fn:'DM Sans',sans-serif; --r:14px; --rs:9px;
+  --pur:#7c3aed; --pur-bg:rgba(124,58,237,.08); --pur-b:rgba(124,58,237,.25);
+  --fn:'DM Sans',sans-serif; --r:12px; --rs:8px;
 }
-* { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent }
-html { font-size:17px }
-body { background:var(--bg); color:var(--tx); font-family:var(--fn); min-height:100dvh }
-.screen { display:none; flex-direction:column; min-height:100dvh }
-.screen.active { display:flex }
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{font-size:16px}
+body{background:var(--bg);color:var(--tx);font-family:var(--fn);min-height:100dvh}
+.screen{display:none;flex-direction:column;min-height:100dvh}
+.screen.active{display:flex}
 
-.topbar { background:var(--surf); border-bottom:2px solid var(--bdr); padding:12px 14px;
-  display:flex; align-items:center; gap:10px; position:sticky; top:0; z-index:100;
-  box-shadow:0 2px 8px rgba(0,0,0,.06) }
-.logo { width:36px; height:36px; background:linear-gradient(145deg,#1a3a6e,#0d1f3c);
-  border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0 }
-.topbar h1 { font-size:17px; font-weight:800 }
-.topbar small { display:block; font-size:12px; color:var(--dim); margin-top:1px }
-.save-btn { margin-left:auto; background:var(--ok-bg); border:1.5px solid rgba(0,135,90,.2);
-  color:var(--ok); border-radius:8px; padding:7px 12px; font-size:13px; font-weight:700;
-  cursor:pointer; font-family:var(--fn) }
+/* TOPBAR */
+.topbar{background:var(--surf);border-bottom:2px solid var(--bdr);padding:10px 14px;
+  display:flex;align-items:center;gap:8px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.logo{width:34px;height:34px;background:linear-gradient(145deg,#1a3a6e,#0d1f3c);
+  border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.topbar h1{font-size:16px;font-weight:800;line-height:1.1}
+.topbar small{display:block;font-size:11px;color:var(--dim);margin-top:1px}
+.tbtn{border:1.5px solid var(--bdr);border-radius:7px;padding:6px 10px;font-family:var(--fn);
+  font-size:13px;font-weight:700;cursor:pointer;background:var(--surf2);color:var(--tx2)}
 
-.tabs { background:var(--surf); border-bottom:1px solid var(--bdr);
-  padding:10px 14px; display:flex; gap:6px; overflow-x:auto; scrollbar-width:none }
-.tabs::-webkit-scrollbar { display:none }
-.tp { flex-shrink:0; font-size:12px; font-weight:700; padding:7px 13px; border-radius:20px;
-  border:2px solid var(--bdr); color:var(--dim); background:var(--surf); cursor:pointer; transition:all .2s }
-.tp.done { border-color:var(--ok); color:var(--ok); background:var(--ok-bg) }
-.tp.active { border-color:var(--acc); color:var(--acc); background:var(--acc-bg) }
+/* TABS */
+.tabs{background:var(--surf);border-bottom:1px solid var(--bdr);
+  padding:8px 12px;display:flex;gap:5px;overflow-x:auto;scrollbar-width:none;flex-shrink:0}
+.tabs::-webkit-scrollbar{display:none}
+.tp{flex-shrink:0;font-size:11px;font-weight:700;padding:6px 11px;border-radius:20px;
+  border:1.5px solid var(--bdr);color:var(--dim);background:var(--surf);cursor:pointer;transition:all .2s}
+.tp.done{border-color:var(--ok);color:var(--ok);background:var(--ok-bg)}
+.tp.active{border-color:var(--acc);color:var(--acc);background:var(--acc-bg)}
 
-.content { flex:1; padding:14px 14px 110px }
+/* CONTENT */
+.content{flex:1;padding:12px 12px 100px;overflow-y:auto}
 
-.sec { background:var(--surf); border:1.5px solid var(--bdr); border-radius:var(--r); padding:16px; margin-bottom:14px }
-.sec-hdr { display:flex; align-items:center; gap:10px; margin-bottom:14px }
-.sec-ico { width:40px; height:40px; border-radius:10px; background:var(--acc-bg);
-  border:1.5px solid var(--acc-b); display:flex; align-items:center; justify-content:center;
-  font-size:20px; flex-shrink:0 }
-.sec-ttl { font-size:16px; font-weight:800 }
-.sec-sub { font-size:12px; color:var(--dim); margin-top:2px }
+/* SECTION */
+.sec{background:var(--surf);border:1.5px solid var(--bdr);border-radius:var(--r);padding:14px;margin-bottom:12px}
+.sec-hdr{display:flex;align-items:center;gap:9px;margin-bottom:12px}
+.sec-ico{width:36px;height:36px;border-radius:9px;background:var(--acc-bg);
+  border:1.5px solid var(--acc-b);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.sec-ico.blue{background:var(--blu-bg);border-color:var(--blu-b)}
+.sec-ico.green{background:var(--ok-bg);border-color:var(--ok-b)}
+.sec-ico.red{background:var(--red-bg);border-color:var(--red-b)}
+.sec-ico.purple{background:var(--pur-bg);border-color:var(--pur-b)}
+.sec-ttl{font-size:15px;font-weight:800}
+.sec-sub{font-size:11px;color:var(--dim);margin-top:1px}
 
-.fld { margin-bottom:14px }
-.fld:last-child { margin-bottom:0 }
-label { display:block; font-size:13px; font-weight:700; color:var(--tx2);
-  letter-spacing:.4px; text-transform:uppercase; margin-bottom:6px }
-input, textarea, select {
-  width:100%; background:var(--surf2); border:2px solid var(--bdr); border-radius:var(--rs);
-  color:var(--tx); font-family:var(--fn); font-size:17px; font-weight:500;
-  padding:13px 14px; outline:none; transition:border-color .2s; -webkit-appearance:none; appearance:none }
-input:focus, textarea:focus, select:focus { border-color:var(--acc); background:#fff }
-textarea { resize:none; min-height:90px; line-height:1.5 }
-select {
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M6 8L0 0h12z' fill='%236a7a90'/%3E%3C/svg%3E");
-  background-repeat:no-repeat; background-position:right 14px center; padding-right:36px }
-.r2 { display:grid; grid-template-columns:1fr 1fr; gap:10px }
-input.hi { border-color:var(--blu) !important; background:var(--blu-bg) !important }
+/* FORM */
+.fld{margin-bottom:12px}
+.fld:last-child{margin-bottom:0}
+label{display:block;font-size:12px;font-weight:700;color:var(--tx2);
+  letter-spacing:.3px;text-transform:uppercase;margin-bottom:5px}
+input,textarea,select{
+  width:100%;background:var(--surf2);border:1.5px solid var(--bdr);border-radius:var(--rs);
+  color:var(--tx);font-family:var(--fn);font-size:16px;font-weight:500;
+  padding:11px 12px;outline:none;transition:border-color .2s;-webkit-appearance:none;appearance:none}
+input:focus,textarea:focus,select:focus{border-color:var(--acc);background:#fff}
+textarea{resize:none;min-height:80px;line-height:1.5}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M6 8L0 0h12z' fill='%236a7a90'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 12px center;padding-right:34px}
+.r2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.r3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+input.hi{border-color:var(--blu)!important;background:var(--blu-bg)!important}
+input.hi-red{border-color:var(--red)!important;background:var(--red-bg)!important}
 
-.gps-row { display:flex; gap:8px }
-.gps-row input { flex:1; min-width:0 }
-.gps-btn { background:var(--surf2); border:2px solid var(--bdr); color:var(--blu);
-  border-radius:var(--rs); padding:0 14px; font-size:22px; cursor:pointer; flex-shrink:0;
-  min-width:52px; display:flex; align-items:center; justify-content:center }
+/* GPS ROW */
+.gps-row{display:flex;gap:6px}
+.gps-row input,.gps-row select{flex:1;min-width:0}
+.gps-btn{background:var(--surf2);border:1.5px solid var(--bdr);color:var(--blu);
+  border-radius:var(--rs);padding:0 12px;font-size:20px;cursor:pointer;flex-shrink:0;
+  min-width:48px;display:flex;align-items:center;justify-content:center}
 
-.btn { display:flex; align-items:center; justify-content:center; gap:8px; width:100%;
-  padding:16px; border:none; border-radius:var(--rs); font-family:var(--fn);
-  font-size:16px; font-weight:800; letter-spacing:.5px; cursor:pointer;
-  transition:transform .15s; text-transform:uppercase; margin-top:8px }
-.btn:active { transform:scale(.97) }
-.btn-p { background:linear-gradient(135deg,#c04800,#e05c00); color:#fff; box-shadow:0 4px 16px rgba(224,92,0,.3) }
-.btn-s { background:var(--surf2); color:var(--tx); border:2px solid var(--bdr) }
-.btn-g { background:linear-gradient(135deg,#006b44,#00875a); color:#fff }
-.btn-r { background:var(--red-bg); color:var(--red); border:2px solid rgba(192,57,43,.2) }
-.btn-sm { padding:10px 14px; font-size:13px; width:auto; margin-top:0 }
+/* BUTTONS */
+.btn{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;
+  padding:14px;border:none;border-radius:var(--rs);font-family:var(--fn);
+  font-size:15px;font-weight:800;letter-spacing:.3px;cursor:pointer;transition:transform .15s;
+  text-transform:uppercase;margin-top:8px}
+.btn:active{transform:scale(.97)}
+.btn-p{background:linear-gradient(135deg,#c04800,#e05c00);color:#fff;box-shadow:0 3px 12px rgba(224,92,0,.3)}
+.btn-s{background:var(--surf2);color:var(--tx);border:1.5px solid var(--bdr)}
+.btn-g{background:linear-gradient(135deg,#006b44,#00875a);color:#fff;box-shadow:0 3px 12px rgba(0,135,90,.25)}
+.btn-r{background:var(--red-bg);color:var(--red);border:1.5px solid var(--red-b)}
+.btn-b{background:var(--blu-bg);color:var(--blu);border:1.5px solid var(--blu-b)}
+.btn-sm{padding:9px 12px;font-size:12px;width:auto;margin-top:0}
 
-.bot { position:fixed; bottom:0; left:0; right:0; background:var(--surf); border-top:2px solid var(--bdr);
-  padding:12px 14px calc(12px + env(safe-area-inset-bottom)); display:flex; gap:10px;
-  z-index:100; box-shadow:0 -4px 16px rgba(0,0,0,.08) }
+/* BOTTOM NAV */
+.bot{position:fixed;bottom:0;left:0;right:0;background:var(--surf);border-top:2px solid var(--bdr);
+  padding:10px 12px calc(10px + env(safe-area-inset-bottom));display:flex;gap:8px;
+  z-index:100;box-shadow:0 -3px 12px rgba(0,0,0,.07)}
 
-.card { background:var(--surf2); border:2px solid var(--bdr); border-radius:var(--r); padding:14px; margin-bottom:10px; position:relative }
-.card-hdr { display:flex; align-items:center; gap:10px; margin-bottom:12px }
-.cnum { width:34px; height:34px; border-radius:8px; background:var(--acc); color:#fff;
-  font-weight:800; font-size:15px; display:flex; align-items:center; justify-content:center; flex-shrink:0 }
-.cnum.b { background:var(--blu) }
-.cdel { position:absolute; top:12px; right:12px; background:var(--red-bg);
-  border:1.5px solid rgba(192,57,43,.2); color:var(--red); border-radius:7px;
-  padding:6px 10px; font-size:13px; font-weight:700; cursor:pointer }
-.add-btn { background:var(--surf); border:2px dashed var(--bdr); border-radius:var(--r);
-  padding:16px; display:flex; align-items:center; justify-content:center; gap:10px;
-  cursor:pointer; font-size:15px; font-weight:700; color:var(--dim); width:100%; margin-bottom:10px }
+/* CARDS */
+.card{background:var(--surf2);border:1.5px solid var(--bdr);border-radius:var(--r);
+  padding:12px;margin-bottom:10px;position:relative}
+.card-hdr{display:flex;align-items:center;gap:9px;margin-bottom:11px}
+.cnum{width:30px;height:30px;border-radius:7px;background:var(--acc);color:#fff;
+  font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.cnum.b{background:var(--blu)} .cnum.g{background:var(--ok)} .cnum.r{background:var(--red)}
+.cdel{position:absolute;top:10px;right:10px;background:var(--red-bg);
+  border:1.5px solid var(--red-b);color:var(--red);border-radius:6px;
+  padding:5px 9px;font-size:12px;font-weight:700;cursor:pointer}
+.add-btn{background:var(--surf);border:2px dashed var(--bdr);border-radius:var(--r);
+  padding:14px;display:flex;align-items:center;justify-content:center;gap:8px;
+  cursor:pointer;font-size:14px;font-weight:700;color:var(--dim);width:100%;margin-bottom:10px}
 
-.pgrid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px }
-.pslot { aspect-ratio:4/3; background:var(--surf2); border:2px dashed var(--bdr);
-  border-radius:var(--rs); display:flex; flex-direction:column; align-items:center;
-  justify-content:center; cursor:pointer; overflow:hidden; position:relative }
-.pslot.has { border-style:solid; border-color:var(--ok) }
-.pslot img { width:100%; height:100%; object-fit:cover }
-.pslot .plbl { font-size:11px; font-weight:700; color:var(--dim); margin-top:6px; text-align:center }
-.pdel { position:absolute; top:5px; right:5px; width:26px; height:26px;
-  background:rgba(192,57,43,.9); color:#fff; border:none; border-radius:50%;
-  font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center }
+/* INJURY BADGE */
+.inj-badge{display:inline-flex;align-items:center;gap:5px;background:var(--red-bg);
+  border:1.5px solid var(--red-b);border-radius:6px;padding:4px 9px;
+  font-size:12px;font-weight:700;color:var(--red);margin-top:6px}
 
-.ocr-b { display:flex; align-items:center; gap:7px; background:var(--blu-bg);
-  border:1.5px solid var(--blu-b); border-radius:8px; padding:8px 12px;
-  font-size:13px; font-weight:700; color:var(--blu); margin-top:6px }
-.ocr-b.ok { background:var(--ok-bg); border-color:rgba(0,135,90,.3); color:var(--ok) }
-.ocr-b.warn { background:var(--acc-bg); border-color:var(--acc-b); color:var(--acc) }
-.spin { display:inline-block; animation:sp .7s linear infinite }
-@keyframes sp { to { transform:rotate(360deg) } }
+/* PHOTOS */
+.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:7px}
+.pgrid.three{grid-template-columns:1fr 1fr 1fr}
+.pslot{aspect-ratio:4/3;background:var(--surf2);border:2px dashed var(--bdr);
+  border-radius:var(--rs);display:flex;flex-direction:column;align-items:center;
+  justify-content:center;cursor:pointer;overflow:hidden;position:relative}
+.pslot.wide{aspect-ratio:16/9}
+.pslot.has{border-style:solid;border-color:var(--ok)}
+.pslot img{width:100%;height:100%;object-fit:cover}
+.plbl{font-size:10px;font-weight:700;color:var(--dim);margin-top:5px;text-align:center}
+.pdel{position:absolute;top:4px;right:4px;width:24px;height:24px;
+  background:rgba(192,57,43,.9);color:#fff;border:none;border-radius:50%;
+  font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700}
 
-.ibox { border-radius:var(--rs); padding:12px 14px; margin-bottom:14px; font-size:14px; font-weight:600 }
-.ibox.a { background:var(--acc-bg); border:1.5px solid var(--acc-b); color:var(--acc) }
-.ibox.b { background:var(--blu-bg); border:1.5px solid var(--blu-b); color:var(--blu) }
+/* OCR BADGE */
+.ocr-b{display:flex;align-items:center;gap:6px;background:var(--blu-bg);
+  border:1.5px solid var(--blu-b);border-radius:7px;padding:7px 11px;
+  font-size:12px;font-weight:700;color:var(--blu);margin-top:6px}
+.ocr-b.ok{background:var(--ok-bg);border-color:var(--ok-b);color:var(--ok)}
+.ocr-b.warn{background:var(--acc-bg);border-color:var(--acc-b);color:var(--acc)}
+.spin{display:inline-block;animation:sp .7s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
 
-.srow { display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--bdr) }
-.srow:last-child { border-bottom:none }
-.sl { color:var(--dim); font-weight:600; font-size:13px; width:40%; flex-shrink:0 }
-.sv { font-weight:700; text-align:right; word-break:break-word; width:58% }
-.simgs { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin-top:8px }
-.simgs img { width:100%; aspect-ratio:4/3; object-fit:cover; border-radius:7px; border:1.5px solid var(--bdr) }
+/* IBOX */
+.ibox{border-radius:var(--rs);padding:10px 12px;margin-bottom:12px;font-size:13px;font-weight:600}
+.ibox.a{background:var(--acc-bg);border:1.5px solid var(--acc-b);color:var(--acc)}
+.ibox.b{background:var(--blu-bg);border:1.5px solid var(--blu-b);color:var(--blu)}
+.ibox.r{background:var(--red-bg);border:1.5px solid var(--red-b);color:var(--red)}
 
-#toast { position:fixed; bottom:90px; left:50%; transform:translateX(-50%) translateY(20px);
-  background:#1a1a2e; color:#fff; font-weight:700; font-size:14px; padding:12px 20px;
-  border-radius:30px; opacity:0; transition:all .3s; z-index:999; pointer-events:none; white-space:nowrap }
-#toast.on { opacity:1; transform:translateX(-50%) translateY(0) }
+/* SUMMARY ROWS */
+.srow{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--bdr)}
+.srow:last-child{border-bottom:none}
+.sl{color:var(--dim);font-weight:600;font-size:12px;width:38%;flex-shrink:0}
+.sv{font-weight:700;text-align:right;word-break:break-word;width:60%}
+.simgs{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:7px}
+.simgs img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:6px;border:1.5px solid var(--bdr)}
+
+/* PROJECT LIST */
+.proj-item{background:var(--surf);border:1.5px solid var(--bdr);border-radius:var(--r);
+  padding:14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;cursor:pointer;
+  transition:border-color .2s}
+.proj-item:active{border-color:var(--acc)}
+.proj-dot{width:10px;height:10px;border-radius:50%;background:var(--acc);flex-shrink:0}
+.proj-del{background:var(--red-bg);border:1.5px solid var(--red-b);color:var(--red);
+  border-radius:6px;padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0}
+
+/* TOAST */
+#toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(16px);
+  background:#1a1a2e;color:#fff;font-weight:700;font-size:13px;padding:10px 18px;
+  border-radius:30px;opacity:0;transition:all .3s;z-index:999;pointer-events:none;white-space:nowrap}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
 </style>
 </head>
 <body>
 
-<!-- START -->
-<div id="s0" class="screen active">
-  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px;text-align:center;background:linear-gradient(160deg,#0d1420,#1a2a40);min-height:100dvh">
-    <div style="width:80px;height:80px;background:linear-gradient(145deg,#1a4080,#0d1f3c);border:3px solid rgba(255,255,255,.15);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:40px;margin-bottom:24px">&#x1F694;</div>
-    <div style="font-size:11px;font-weight:700;letter-spacing:3px;color:rgba(255,255,255,.4);margin-bottom:8px">PI TELFS &middot; LPD TIROL</div>
-    <h1 style="font-size:26px;font-weight:900;color:#fff;line-height:1.2;margin-bottom:8px">Verkehrsunfall<br>Sachschaden</h1>
-    <p style="color:rgba(255,255,255,.5);font-size:15px;line-height:1.6;margin-bottom:32px">Datenaufnahme &middot; OCR-Erkennung<br>GPS-Verortung &middot; PDF-Export</p>
-    <button onclick="startApp()" style="background:linear-gradient(135deg,#c04800,#e05c00);color:#fff;border:none;border-radius:12px;padding:18px 40px;font-family:var(--fn);font-size:18px;font-weight:800;cursor:pointer">&#x25B6; Neue Aufnahme</button>
-    <button id="load-btn" onclick="loadSaved()" style="background:none;border:none;color:rgba(255,255,255,.4);font-family:var(--fn);font-size:14px;font-weight:600;cursor:pointer;margin-top:14px;padding:8px">&#x1F4C2; Entwurf laden</button>
+<!-- ═══ START / PROJECT LIST ═══ -->
+<div id="s-start" class="screen active">
+  <div style="background:linear-gradient(160deg,#0d1420,#1a2a40);padding:28px 20px 20px;text-align:center">
+    <div style="width:72px;height:72px;background:linear-gradient(145deg,#1a4080,#0d1f3c);border:2px solid rgba(255,255,255,.15);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto 16px">&#x1F694;</div>
+    <div style="font-size:10px;font-weight:700;letter-spacing:3px;color:rgba(255,255,255,.35);margin-bottom:6px">PI TELFS &middot; LPD TIROL</div>
+    <h1 style="font-size:22px;font-weight:900;color:#fff;line-height:1.2;margin-bottom:4px">Unfallaufnahme</h1>
+    <div style="font-size:12px;color:rgba(255,255,255,.4)">Sachschaden &middot; <span style="color:#e05c00;font-weight:700">v3.0</span></div>
+  </div>
+  <div style="flex:1;padding:16px 14px 20px;background:var(--bg)">
+    <button onclick="newProject()" class="btn btn-p" style="font-size:16px;padding:16px;margin-top:0">
+      &#x2795; Neue Aufnahme starten
+    </button>
+    <div style="display:flex;align-items:center;gap:10px;margin:18px 0 10px">
+      <div style="flex:1;height:1px;background:var(--bdr)"></div>
+      <div style="font-size:11px;font-weight:700;color:var(--dim);letter-spacing:1px">GESPEICHERTE AUFNAHMEN</div>
+      <div style="flex:1;height:1px;background:var(--bdr)"></div>
+    </div>
+    <div id="proj-list">
+      <div style="text-align:center;padding:30px 20px;color:var(--dim)">
+        <div style="font-size:32px;margin-bottom:8px">&#x1F4C2;</div>
+        <div style="font-size:14px;font-weight:600">Noch keine gespeicherten Aufnahmen</div>
+      </div>
+    </div>
   </div>
 </div>
 
-<!-- MAIN -->
-<div id="s1" class="screen">
+<!-- ═══ MAIN APP ═══ -->
+<div id="s-app" class="screen">
   <div class="topbar">
     <div class="logo">&#x1F694;</div>
     <div>
       <h1>Unfallaufnahme</h1>
-      <small>Sachschaden &middot; PI Telfs &middot; <span style="color:var(--acc);font-weight:700">v2.1</span></small>
+      <small>PI Telfs &middot; <span style="color:var(--acc);font-weight:700">v3.0</span></small>
     </div>
-    <button onclick="showHelp()" style="margin-left:auto;background:var(--blu-bg);border:1.5px solid var(--blu-b);color:var(--blu);border-radius:8px;padding:7px 12px;font-size:18px;cursor:pointer;font-family:var(--fn);line-height:1">?</button>
-    <button class="save-btn" style="margin-left:6px" onclick="saveData()">&#x1F4BE;</button>
+    <button class="tbtn" onclick="showHelp()" style="margin-left:auto;color:var(--blu);border-color:var(--blu-b);background:var(--blu-bg);font-size:16px;padding:6px 10px">?</button>
+    <button class="tbtn" onclick="saveProject()" style="background:var(--ok-bg);border-color:var(--ok-b);color:var(--ok)">&#x1F4BE;</button>
+    <button class="tbtn" onclick="goHome()" style="font-size:16px">&#x2190;</button>
   </div>
   <div class="tabs">
-    <button class="tp active" id="tp0" onclick="goTab(0)">1 Unfallort</button>
+    <button class="tp active" id="tp0" onclick="goTab(0)">1 Ort</button>
     <button class="tp" id="tp1" onclick="goTab(1)">2 Fahrzeuge</button>
-    <button class="tp" id="tp2" onclick="goTab(2)">3 Lenker</button>
+    <button class="tp" id="tp2" onclick="goTab(2)">3 Personen</button>
     <button class="tp" id="tp3" onclick="goTab(3)">4 Fotos</button>
     <button class="tp" id="tp4" onclick="goTab(4)">5 Export</button>
   </div>
 
-  <!-- TAB 0 -->
+  <!-- ── TAB 0: ORT ── -->
   <div id="t0" class="content">
     <div class="sec">
       <div class="sec-hdr"><div class="sec-ico">&#x1F4CD;</div>
@@ -190,290 +241,338 @@ input.hi { border-color:var(--blu) !important; background:var(--blu-bg) !importa
           <button class="gps-btn" id="gb1" onclick="doGPS()">&#x1F4CD;</button>
         </div>
       </div>
-      <!-- GPS BOX -->
-      <div id="gps-box" style="display:none;margin-top:8px;background:#fff8f0;border:1.5px solid #e8c890;border-radius:10px;padding:12px">
-        <div style="font-size:12px;font-weight:700;color:#8a5a00;letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px">GPS-Position erfasst</div>
-        <div id="gps-disp" style="font-family:monospace;font-size:16px;font-weight:700;background:var(--surf2);border:1.5px solid var(--bdr);border-radius:7px;padding:10px 12px;margin-bottom:8px;letter-spacing:.5px">-</div>
-        <a id="gps-link" href="#" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:8px;background:linear-gradient(135deg,#1a6fff,#0d4fcf);color:#fff;border-radius:8px;padding:12px;font-family:var(--fn);font-size:14px;font-weight:800;text-decoration:none;letter-spacing:.5px">
-          &#x1F5FA;&#xFE0F; IN GOOGLE MAPS OEFFNEN
-        </a>
-        <div style="font-size:11px;color:var(--dim);margin-top:7px;text-align:center">Link auch im PDF enthalten - am PC einfach anklicken oder kopieren</div>
+      <div id="gps-box" style="display:none;margin-top:8px;background:#fff8f0;border:1.5px solid #e8c890;border-radius:9px;padding:11px">
+        <div style="font-size:11px;font-weight:700;color:#8a5a00;letter-spacing:.5px;text-transform:uppercase;margin-bottom:7px">GPS-Position erfasst</div>
+        <div id="gps-disp" style="font-family:monospace;font-size:15px;font-weight:700;background:var(--surf2);border:1.5px solid var(--bdr);border-radius:6px;padding:9px 11px;margin-bottom:7px"></div>
+        <a id="gps-link" href="#" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:7px;background:linear-gradient(135deg,#1a6fff,#0d4fcf);color:#fff;border-radius:7px;padding:11px;font-family:var(--fn);font-size:13px;font-weight:800;text-decoration:none">&#x1F5FA;&#xFE0F; IN GOOGLE MAPS OEFFNEN</a>
+        <div style="font-size:10px;color:var(--dim);margin-top:6px;text-align:center">Link auch im PDF enthalten</div>
       </div>
-      <input type="hidden" id="f-lat">
-      <input type="hidden" id="f-lon">
-      <div class="fld r2" style="margin-top:14px">
-        <div><label>Gemeinde</label>
-          <select id="f-gem">
-            <option>Telfs</option><option>Pfaffenhofen</option><option>Oberhofen i.I.</option>
-            <option>Flaurling</option><option>Pettnau</option><option>Wildermieming</option><option>Andere</option>
+      <input type="hidden" id="f-lat"><input type="hidden" id="f-lon">
+      <div class="fld r2" style="margin-top:12px">
+        <div><label>Gemeinde / Ort</label>
+          <input type="text" id="f-gem" list="gem-list" placeholder="z.B. Telfs, Innsbruck...">
+          <datalist id="gem-list"></datalist>
+        </div>
+        <div><label>Bezirk</label>
+          <select id="f-bezirk">
+            <option value="">-- Bezirk --</option>
+            <option>Innsbruck-Stadt</option><option>Innsbruck-Land</option>
+            <option>Imst</option><option>Landeck</option><option>Schwaz</option>
+            <option>Kufstein</option><option>Kitzbühel</option><option>Lienz</option>
+            <option>Reutte</option>
           </select>
         </div>
-        <div><label>Richtung / KM</label><input type="text" id="f-richtung" placeholder="z.B. Richtung Innsbruck"></div>
       </div>
+      <div class="fld"><label>Richtung / Strassenpunkt</label>
+        <input type="text" id="f-richtung" placeholder="z.B. Richtung Innsbruck, Km 43,2"></div>
     </div>
     <div class="sec">
-      <div class="sec-hdr"><div class="sec-ico">&#x2600;&#xFE0F;</div><div><div class="sec-ttl">Verhaeltnisse</div></div></div>
+      <div class="sec-hdr"><div class="sec-ico">&#x1F324;&#xFE0F;</div><div><div class="sec-ttl">Verhaeltnisse</div></div></div>
       <div class="fld"><label>Wetter</label>
         <select id="f-wetter">
-          <option>Klar / Sonnig</option><option>Bewoelkt</option><option>Regen / Nass</option>
-          <option>Schneefall</option><option>Nebel</option><option>Glatteis</option><option>Sturm</option>
+          <option>Klar / Sonnig</option><option>Bewoelkt</option><option>Leichter Regen</option>
+          <option>Starker Regen</option><option>Schneefall</option><option>Schneeregen</option>
+          <option>Nebel / Sichtbehinderung</option><option>Glatteis</option><option>Sturm / Starker Wind</option>
         </select></div>
-      <div class="fld"><label>Strassenzustand</label>
-        <select id="f-strverh"><option>Trocken</option><option>Nass / Feucht</option><option>Schnee</option><option>Eisglaette</option><option>Rollsplitt</option></select></div>
-      <div class="fld"><label>Lichtverhaeltnisse</label>
-        <select id="f-licht"><option>Tageslicht</option><option>Daemmerung</option><option>Dunkel / Strassenbeleuchtung</option><option>Dunkel / Keine Beleuchtung</option></select></div>
+      <div class="fld r2">
+        <div><label>Strassenzustand</label>
+          <select id="f-strverh">
+            <option>Trocken</option><option>Nass / Feucht</option><option>Schnee (geraeumt)</option>
+            <option>Schnee (ungeraeumt)</option><option>Eisglaette</option>
+            <option>Rollsplitt</option><option>Schlagloecher</option>
+          </select></div>
+        <div><label>Lichtverhaeltnisse</label>
+          <select id="f-licht">
+            <option>Tageslicht</option><option>Daemmerung</option>
+            <option>Dunkel / beleuchtet</option><option>Dunkel / unbeleuchtet</option>
+          </select></div>
+      </div>
+      <div class="fld r2">
+        <div><label>Erlaubte Hoechstgeschw.</label>
+          <select id="f-vmax">
+            <option>30 km/h</option><option>50 km/h</option><option>70 km/h</option>
+            <option>80 km/h</option><option>100 km/h</option><option>130 km/h</option><option>unbekannt</option>
+          </select></div>
+        <div><label>Strassentyp</label>
+          <select id="f-strassentyp">
+            <option>Gemeindestrasse</option><option>Landesstrasse</option><option>Bundesstrasse (B)</option>
+            <option>Autobahn (A)</option><option>Schnellstrasse (S)</option><option>Privatstrasse</option>
+          </select></div>
+      </div>
     </div>
     <div class="sec">
       <div class="sec-hdr"><div class="sec-ico">&#x1F4DD;</div><div><div class="sec-ttl">Sachverhalt &amp; Massnahmen</div></div></div>
-      <div class="fld"><label>Unfallhergang</label><textarea id="f-hergang" placeholder="Kurze Beschreibung..."></textarea></div>
-      <div class="fld"><label>Massnahmen</label><textarea id="f-mass" placeholder="z.B. Alkotest, Anzeige..." style="min-height:70px"></textarea></div>
-    </div>
-    <button class="btn btn-p" onclick="goTab(1)">Weiter Fahrzeuge</button>
-  </div>
-
-  <!-- TAB 1 -->
-  <div id="t1" class="content" style="display:none">
-    <div class="ibox a">Alle beteiligten Fahrzeuge und beschaedigte Objekte eintragen.</div>
-    <div id="fz-list"></div>
-    <button class="add-btn" onclick="addFZ()"><span style="font-size:22px">+</span> Fahrzeug / Objekt hinzufuegen</button>
-    <div class="sec">
-      <div class="sec-hdr"><div class="sec-ico">&#x1F4CF;</div><div><div class="sec-ttl">Geschwindigkeit</div></div></div>
-      <div class="fld r2">
-        <div><label>Hoechstgeschwindigkeit</label><input type="text" id="f-vmax" placeholder="50 km/h"></div>
-        <div><label>Fahrtrichtung Fzg.1</label><input type="text" id="f-fahr" placeholder="z.B. Nord"></div>
+      <div class="fld"><label>Unfallhergang</label>
+        <textarea id="f-hergang" placeholder="Kurze Beschreibung des Hergangs..."></textarea></div>
+      <div class="fld"><label>Polizeiliche Massnahmen</label>
+        <textarea id="f-mass" placeholder="z.B. Alkotest neg., Anzeige nach §5 StVO..." style="min-height:65px"></textarea></div>
+      <div class="fld"><label>Anzahl Verletzte</label>
+        <select id="f-verletzte">
+          <option>Keine Verletzten</option><option>1 Person leicht verletzt</option>
+          <option>1 Person schwer verletzt</option><option>Mehrere leicht verletzt</option>
+          <option>Mehrere schwer verletzt</option><option>1 Todesfall</option><option>Mehrere Todesfaelle</option>
+        </select></div>
+      <div class="fld" id="f-rettung-wrap" style="display:none">
+        <label>Alarmierte Einsatzkraefte</label>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:2px" id="f-rettung-checks">
+          <label style="text-transform:none;letter-spacing:0;display:flex;align-items:center;gap:5px;font-size:14px;font-weight:500;background:var(--surf2);border:1.5px solid var(--bdr);border-radius:6px;padding:7px 11px">
+            <input type="checkbox" id="ret-rettung" style="width:auto;padding:0;background:none;border:none"> Rettung</label>
+          <label style="text-transform:none;letter-spacing:0;display:flex;align-items:center;gap:5px;font-size:14px;font-weight:500;background:var(--surf2);border:1.5px solid var(--bdr);border-radius:6px;padding:7px 11px">
+            <input type="checkbox" id="ret-feuerwehr" style="width:auto;padding:0;background:none;border:none"> Feuerwehr</label>
+          <label style="text-transform:none;letter-spacing:0;display:flex;align-items:center;gap:5px;font-size:14px;font-weight:500;background:var(--surf2);border:1.5px solid var(--bdr);border-radius:6px;padding:7px 11px">
+            <input type="checkbox" id="ret-notarzt" style="width:auto;padding:0;background:none;border:none"> Notarzt</label>
+          <label style="text-transform:none;letter-spacing:0;display:flex;align-items:center;gap:5px;font-size:14px;font-weight:500;background:var(--surf2);border:1.5px solid var(--bdr);border-radius:6px;padding:7px 11px">
+            <input type="checkbox" id="ret-heli" style="width:auto;padding:0;background:none;border:none"> Hubschrauber</label>
+        </div>
       </div>
     </div>
-    <button class="btn btn-p" onclick="goTab(2)">Weiter Lenker</button>
+    <button class="btn btn-p" onclick="goTab(1)">Weiter &#x2192; Fahrzeuge</button>
   </div>
 
-  <!-- TAB 2 -->
+  <!-- ── TAB 1: FAHRZEUGE ── -->
+  <div id="t1" class="content" style="display:none">
+    <div class="ibox a">Alle beteiligten Fahrzeuge und beschaedigte Objekte eintragen. Foto machen - Kennzeichen wird automatisch erkannt.</div>
+    <div id="fz-list"></div>
+    <button class="add-btn" onclick="addFZ()"><span style="font-size:20px">&#x2795;</span> Fahrzeug / Objekt hinzufuegen</button>
+    <button class="btn btn-p" onclick="goTab(2)">Weiter &#x2192; Personen</button>
+  </div>
+
+  <!-- ── TAB 2: PERSONEN ── -->
   <div id="t2" class="content" style="display:none">
-    <div class="ibox b">Lenker eintragen. Fuehrerschein und Zulassung fotografieren - Daten werden automatisch erkannt!</div>
-    <div id="l-list"></div>
-    <button class="add-btn" onclick="addL()"><span style="font-size:22px">+</span> Weiteren Lenker hinzufuegen</button>
-    <button class="btn btn-p" onclick="goTab(3)">Weiter Fotos</button>
+    <div class="ibox b">Alle beteiligten Personen eintragen. Fuehrerschein fotografieren - Daten werden automatisch erkannt.</div>
+    <div id="pers-list"></div>
+    <button class="add-btn" onclick="addPers()"><span style="font-size:20px">&#x2795;</span> Person hinzufuegen</button>
+    <button class="btn btn-p" onclick="goTab(3)">Weiter &#x2192; Fotos</button>
   </div>
 
-  <!-- TAB 3 -->
+  <!-- ── TAB 3: FOTOS ── -->
   <div id="t3" class="content" style="display:none">
     <div class="sec">
       <div class="sec-hdr"><div class="sec-ico">&#x1F4F7;</div>
-        <div><div class="sec-ttl">Unfallfotos</div><div class="sec-sub">Gesamtansicht, Spuren, Schaeden</div></div></div>
+        <div><div class="sec-ttl">Unfallstellenfotos</div><div class="sec-sub">Gesamtansicht, Spuren, Schaeden</div></div></div>
       <div class="pgrid" id="ep-grid"></div>
-      <button class="add-btn" style="margin-top:6px;margin-bottom:0" onclick="addEP()">
-        <span style="font-size:22px">&#x1F4F7;</span> Weiteres Foto</button>
+      <button class="add-btn" style="margin-top:7px;margin-bottom:0" onclick="addEP()">
+        <span style="font-size:20px">&#x1F4F7;</span> Weiteres Foto</button>
     </div>
-    <div class="ibox b">Gesamtansicht, Spurenlage, alle Schaeden, Strassenschilder und Kilometerstein fotografieren.</div>
-    <button class="btn btn-p" onclick="goTab(4)">Weiter Export</button>
+    <div class="ibox b">Gesamtansicht &middot; Spurenlage &middot; Alle Schaeden &middot; Strassenschilder &middot; Kilometerstein &middot; Skizze der Unfallstelle</div>
+    <button class="btn btn-p" onclick="goTab(4)">Weiter &#x2192; Export</button>
   </div>
 
-  <!-- TAB 4 -->
+  <!-- ── TAB 4: EXPORT ── -->
   <div id="t4" class="content" style="display:none">
     <div id="summary"></div>
-    <div class="sec" style="border-color:rgba(0,135,90,.25);background:var(--ok-bg)">
+    <!-- CRYPTSHARE -->
+    <div class="sec" style="border-color:var(--ok-b);background:var(--ok-bg)">
       <div class="sec-hdr">
-        <div class="sec-ico" style="background:var(--ok-bg);border-color:rgba(0,135,90,.3)">&#x1F4E4;</div>
-        <div><div class="sec-ttl">Export &amp; Versand</div></div>
+        <div class="sec-ico green">&#x1F512;</div>
+        <div><div class="sec-ttl">Cryptshare BMI</div><div class="sec-sub">cryptshare.bmi.gv.at</div></div>
+      </div>
+      <div class="fld"><label>Deine E-Mail (Absender)</label>
+        <input type="email" id="cs-sender" placeholder="eigene@mail.at">
+        <div style="font-size:11px;color:var(--dim);margin-top:4px">Hierhin kommt der OTP-Code</div>
       </div>
       <div class="fld"><label>Empfaenger E-Mail</label>
-        <input type="email" id="f-mail" placeholder="inspektion.telfs@polizei.gv.at"></div>
-      <!-- CRYPTSHARE UPLOAD -->
-      <div style="background:var(--surf2);border:1.5px solid var(--bdr);border-radius:10px;padding:14px;margin-bottom:8px">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
-          <div style="font-size:22px">&#x1F512;</div>
-          <div><div style="font-size:14px;font-weight:800">Cryptshare BMI</div><div style="font-size:12px;color:var(--dim)">Sicherer Dienstweg - cryptshare.bmi.gv.at</div></div>
-        </div>
-        <div class="fld"><label>Deine E-Mail-Adresse (Absender)</label>
-          <input type="email" id="cs-sender" placeholder="z.B. max.mustermann@gmail.com">
-          <div style="font-size:11px;color:var(--dim);margin-top:5px">Hierhin wird der Bestaetigungscode (OTP) geschickt - private oder Dienstmail.</div></div>
-        <div class="fld"><label>Empfaenger E-Mail (Wer den Link bekommt)</label>
-          <input type="email" id="cs-recipient" placeholder="z.B. inspektion.telfs@polizei.gv.at"></div>
-
-        <!-- STEP 1: Request OTP -->
-        <div id="cs-step1">
-          <button class="btn btn-g" onclick="csRequestOTP()" style="margin-top:4px">&#x1F512; Cryptshare - OTP anfordern</button>
-        </div>
-
-        <!-- STEP 2: Enter OTP -->
-        <div id="cs-step2" style="display:none">
-          <div style="background:var(--ok-bg);border:1.5px solid rgba(0,135,90,.3);border-radius:8px;padding:10px;margin-top:8px;font-size:13px;color:var(--ok);font-weight:600">
-            Ein Bestaetigungscode wurde an deine E-Mail geschickt. Bitte eintragen:
-          </div>
-          <div class="fld" style="margin-top:10px"><label>OTP Code</label>
-            <input type="text" id="cs-otp" placeholder="z.B. 123456" style="font-family:monospace;font-size:22px;letter-spacing:4px;text-align:center"></div>
-          <button class="btn btn-g" onclick="csVerifyAndUpload()">&#x2705; Bestaetigen &amp; Hochladen</button>
-          <button class="btn btn-s" onclick="csReset()" style="margin-top:4px;font-size:13px">Abbrechen</button>
-        </div>
-
-        <!-- STEP 3: Progress -->
-        <div id="cs-step3" style="display:none;text-align:center;padding:12px 0">
-          <div style="font-size:24px;margin-bottom:8px" id="cs-icon">&#x23F3;</div>
-          <div id="cs-status" style="font-size:14px;font-weight:700;color:var(--blu)">Wird vorbereitet...</div>
-          <div id="cs-detail" style="font-size:12px;color:var(--dim);margin-top:4px"></div>
-          <div id="cs-progress-bar" style="height:6px;background:var(--bdr);border-radius:3px;margin-top:10px;overflow:hidden">
-            <div id="cs-progress-fill" style="height:100%;background:linear-gradient(90deg,var(--ok),#00c870);border-radius:3px;width:0%;transition:width .4s"></div>
-          </div>
-        </div>
-
-        <!-- STEP 4: Result -->
-        <div id="cs-step4" style="display:none">
-          <div style="background:var(--ok-bg);border:1.5px solid rgba(0,135,90,.3);border-radius:8px;padding:12px;margin-top:8px">
-            <div style="font-size:13px;font-weight:800;color:var(--ok);margin-bottom:6px">&#x2705; Erfolgreich hochgeladen!</div>
-            <div style="font-size:11px;color:var(--dim);margin-bottom:8px">Download-Link fuer Empfaenger:</div>
-            <div id="cs-result-link" style="font-family:monospace;font-size:12px;background:var(--surf);border:1.5px solid var(--bdr);border-radius:6px;padding:8px;word-break:break-all;color:var(--blu);margin-bottom:8px">-</div>
-            <div style="display:flex;gap:6px">
-              <button onclick="csCopyLink()" style="flex:1;background:var(--blu-bg);border:1.5px solid var(--blu-b);color:var(--blu);border-radius:7px;padding:9px;font-family:var(--fn);font-size:13px;font-weight:700;cursor:pointer">&#x1F4CB; Kopieren</button>
-              <button onclick="csMailLink()" style="flex:1;background:var(--ok-bg);border:1.5px solid rgba(0,135,90,.3);color:var(--ok);border-radius:7px;padding:9px;font-family:var(--fn);font-size:13px;font-weight:700;cursor:pointer">&#x2709;&#xFE0F; Per Mail</button>
-            </div>
-          </div>
-          <button class="btn btn-s" onclick="csReset()" style="margin-top:6px;font-size:13px">Neuer Upload</button>
-        </div>
-
-        <!-- CORS ERROR -->
-        <div id="cs-cors-err" style="display:none;background:var(--red-bg);border:1.5px solid rgba(192,57,43,.2);border-radius:8px;padding:12px;margin-top:8px;font-size:13px;color:var(--red)">
-          <strong>Netzwerkfehler:</strong> Cryptshare ist nur aus dem Polizei-Intranet/VPN erreichbar. Bitte lokal speichern und manuell uebermitteln.
+        <input type="email" id="cs-recipient" placeholder="inspektion.telfs@polizei.gv.at"></div>
+      <div id="cs-step1">
+        <button class="btn btn-g" onclick="csRequestOTP()" style="margin-top:4px">&#x1F512; OTP anfordern &amp; hochladen</button>
+      </div>
+      <div id="cs-step2" style="display:none">
+        <div class="ibox b" style="margin-top:8px">OTP wurde an deine E-Mail geschickt:</div>
+        <div class="fld"><label>OTP Code</label>
+          <input type="text" id="cs-otp" placeholder="123456" style="font-family:monospace;font-size:24px;letter-spacing:6px;text-align:center"></div>
+        <button class="btn btn-g" onclick="csVerifyAndUpload()">&#x2705; Bestaetigen &amp; Hochladen</button>
+        <button class="btn btn-s" onclick="csReset()" style="margin-top:4px;font-size:12px">Abbrechen</button>
+      </div>
+      <div id="cs-step3" style="display:none;text-align:center;padding:14px 0">
+        <div style="font-size:26px;margin-bottom:8px" id="cs-icon">&#x23F3;</div>
+        <div id="cs-status" style="font-size:14px;font-weight:700;color:var(--blu)">Wird vorbereitet...</div>
+        <div id="cs-detail" style="font-size:11px;color:var(--dim);margin-top:4px"></div>
+        <div style="height:5px;background:var(--bdr);border-radius:3px;margin-top:10px;overflow:hidden">
+          <div id="cs-prog" style="height:100%;background:linear-gradient(90deg,var(--ok),#00c870);border-radius:3px;width:0%;transition:width .4s"></div>
         </div>
       </div>
-
-      <button class="btn btn-s" onclick="doExport(false)">&#x1F4BE; Lokal speichern (PDF + Fotos als ZIP)</button>
+      <div id="cs-step4" style="display:none">
+        <div style="background:var(--ok-bg);border:1.5px solid var(--ok-b);border-radius:8px;padding:12px;margin-top:8px">
+          <div style="font-size:13px;font-weight:800;color:var(--ok);margin-bottom:5px">&#x2705; Erfolgreich hochgeladen!</div>
+          <div id="cs-result-link" style="font-family:monospace;font-size:11px;background:var(--surf);border:1.5px solid var(--bdr);border-radius:5px;padding:7px;word-break:break-all;color:var(--blu);margin-bottom:7px">-</div>
+          <div style="display:flex;gap:6px">
+            <button onclick="csCopyLink()" style="flex:1;background:var(--blu-bg);border:1.5px solid var(--blu-b);color:var(--blu);border-radius:6px;padding:8px;font-family:var(--fn);font-size:12px;font-weight:700;cursor:pointer">&#x1F4CB; Kopieren</button>
+            <button onclick="csMailLink()" style="flex:1;background:var(--ok-bg);border:1.5px solid var(--ok-b);color:var(--ok);border-radius:6px;padding:8px;font-family:var(--fn);font-size:12px;font-weight:700;cursor:pointer">&#x2709;&#xFE0F; Mail</button>
+          </div>
+        </div>
+        <button class="btn btn-s" onclick="csReset()" style="margin-top:6px;font-size:12px">Neuer Upload</button>
+      </div>
+      <div id="cs-cors-err" style="display:none" class="ibox r">
+        Netzwerkfehler: Nur im Polizei-Netz / VPN erreichbar. Bitte ZIP lokal speichern.
+      </div>
     </div>
-    <button class="btn btn-r" onclick="resetApp()" style="margin-top:6px;font-size:14px">Neue Aufnahme beginnen</button>
+    <!-- LOCAL ZIP -->
+    <div class="sec">
+      <div class="sec-hdr"><div class="sec-ico">&#x1F4E6;</div>
+        <div><div class="sec-ttl">Lokal speichern</div><div class="sec-sub">ZIP mit PDF + allen Fotos</div></div></div>
+      <button class="btn btn-p" onclick="doExport()" style="margin-top:0">&#x1F4E6; ZIP Herunterladen</button>
+    </div>
+    <button class="btn btn-r" onclick="confirmReset()" style="font-size:13px">&#x1F5D1; Neue Aufnahme beginnen</button>
   </div>
 
   <div class="bot">
-    <button class="btn btn-s btn-sm" id="btn-prev" onclick="prevTab()" style="flex:1">Zurueck</button>
-    <button class="btn btn-p btn-sm" id="btn-next" onclick="nextTab()" style="flex:2">Weiter</button>
+    <button class="btn btn-s btn-sm" id="btn-prev" onclick="prevTab()" style="flex:1">&#x2190; Zurueck</button>
+    <button class="btn btn-p btn-sm" id="btn-next" onclick="nextTab()" style="flex:2">Weiter &#x2192;</button>
+  </div>
+</div>
+
+<!-- ═══ HELP MODAL ═══ -->
+<div id="help-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;overflow-y:auto">
+  <div style="background:var(--surf);min-height:100dvh">
+    <div style="background:linear-gradient(135deg,#0d1420,#1a2a40);padding:18px 14px;display:flex;align-items:center;gap:10px">
+      <div style="font-size:24px">&#x1F4D6;</div>
+      <div>
+        <div style="color:#fff;font-size:16px;font-weight:800">Bedienungsanleitung</div>
+        <div style="color:rgba(255,255,255,.4);font-size:11px">Unfallaufnahme v3.0 &middot; PI Telfs</div>
+      </div>
+      <button onclick="hideHelp()" style="margin-left:auto;background:rgba(255,255,255,.1);border:none;color:#fff;border-radius:7px;padding:7px 12px;font-size:13px;font-weight:700;cursor:pointer">&#x2715; Schliessen</button>
+    </div>
+    <div style="padding:14px">
+      <div class="ibox a">Die App fuehrt durch die strukturierte Aufnahme eines Verkehrsunfalls in 5 Schritten. Alle Daten werden lokal gespeichert.</div>
+      <div class="sec" style="margin-bottom:10px">
+        <div style="font-weight:800;font-size:14px;color:var(--acc);margin-bottom:10px">&#x1F4CD; Schritt 1 - Unfallort</div>
+        <div style="font-size:13px;line-height:1.9;color:var(--tx2)">
+          &#x2022; GPS-Taste antippen &rarr; Strasse + Gemeinde automatisch<br>
+          &#x2022; Google Maps Link erscheint automatisch<br>
+          &#x2022; Gemeinde: Freitext mit Tirol-Vorschlaegen<br>
+          &#x2022; Wetter, Strassenzustand, Licht auswaehlen<br>
+          &#x2022; Bei Verletzten: Rettungskraefte auswaehlen
+        </div>
+      </div>
+      <div class="sec" style="margin-bottom:10px">
+        <div style="font-weight:800;font-size:14px;color:var(--acc);margin-bottom:10px">&#x1F697; Schritt 2 - Fahrzeuge</div>
+        <div style="font-size:13px;line-height:1.9;color:var(--tx2)">
+          &#x2022; Marke + Farbe aus Dropdown waehlen<br>
+          &#x2022; Foto &rarr; Kennzeichen automatisch (OCR, ca. 15 Sek.)<br>
+          &#x2022; Zulassungsschein direkt beim Fahrzeug fotografieren<br>
+          &#x2022; Beifahrer koennen beim Fahrzeug eingetragen werden
+        </div>
+      </div>
+      <div class="sec" style="margin-bottom:10px">
+        <div style="font-weight:800;font-size:14px;color:var(--acc);margin-bottom:10px">&#x1F464; Schritt 3 - Personen</div>
+        <div style="font-size:13px;line-height:1.9;color:var(--tx2)">
+          &#x2022; Rolle: Lenker, Beifahrer, Fussgaenger, Zeuge<br>
+          &#x2022; Fuehrerschein Foto &rarr; Name + Geb.datum automatisch<br>
+          &#x2022; Verletzungsgrad eintragen (keine / leicht / schwer)<br>
+          &#x2022; Versicherungsdaten eintragen
+        </div>
+      </div>
+      <div class="sec" style="margin-bottom:10px">
+        <div style="font-weight:800;font-size:14px;color:var(--acc);margin-bottom:10px">&#x1F4F7; Schritt 4 - Fotos</div>
+        <div style="font-size:13px;line-height:1.9;color:var(--tx2)">
+          &#x2022; Gesamtansicht der Unfallstelle<br>
+          &#x2022; Spurenlage auf der Fahrbahn<br>
+          &#x2022; Strassenschilder und Kilometerstein<br>
+          &#x2022; Beliebig viele Fotos hinzufuegen
+        </div>
+      </div>
+      <div class="sec" style="margin-bottom:10px">
+        <div style="font-weight:800;font-size:14px;color:var(--ok);margin-bottom:10px">&#x1F4E4; Schritt 5 - Export</div>
+        <div style="font-size:13px;line-height:1.9;color:var(--tx2)">
+          &#x2022; <b>Cryptshare</b>: Sicher via cryptshare.bmi.gv.at (nur Polizei-Netz)<br>
+          &nbsp;&nbsp;&nbsp;1. Absender-Mail eintragen &rarr; OTP anfordern<br>
+          &nbsp;&nbsp;&nbsp;2. OTP aus Mail eintragen &rarr; Hochladen<br>
+          &#x2022; <b>ZIP lokal</b>: PDF + alle Fotos als ZIP speichern
+        </div>
+      </div>
+      <div class="sec" style="margin-bottom:10px">
+        <div style="font-weight:800;font-size:14px;color:var(--blu);margin-bottom:10px">&#x1F4A1; Tipps</div>
+        <div style="font-size:13px;line-height:1.9;color:var(--tx2)">
+          &#x2022; <b>Speichern</b>: Disk-Icon oben rechts &rarr; Projekt wird gespeichert<br>
+          &#x2022; <b>Mehrere Projekte</b>: Zurueck-Pfeil &rarr; Projektliste<br>
+          &#x2022; OCR: Gute Beleuchtung + gerade Kamera = bessere Erkennung<br>
+          &#x2022; App als Vollbild: Browser &rarr; "Zum Startbildschirm hinzufuegen"
+        </div>
+      </div>
+      <div style="background:var(--surf2);border:1.5px solid var(--bdr);border-radius:9px;padding:11px;text-align:center">
+        <div style="font-family:monospace;font-size:11px;color:var(--dim)">
+          Unfallaufnahme App v3.0 &middot; PI Telfs &middot; LPD Tirol<br>
+          jsPDF &middot; Tesseract.js &middot; JSZip &middot; Cryptshare API
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
 <div id="toast"></div>
 
-<!-- HELP MODAL -->
-<div id="help-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;overflow-y:auto">
-  <div style="background:var(--surf);min-height:100dvh;padding:0 0 40px">
-    <div style="background:linear-gradient(135deg,#0d1420,#1a2a40);padding:20px 16px;display:flex;align-items:center;gap:12px">
-      <div style="font-size:28px">&#x1F4D6;</div>
-      <div>
-        <div style="color:#fff;font-size:18px;font-weight:800">Bedienungsanleitung</div>
-        <div style="color:rgba(255,255,255,.5);font-size:12px">Unfallaufnahme App &middot; v2.1 &middot; PI Telfs</div>
-      </div>
-      <button onclick="hideHelp()" style="margin-left:auto;background:rgba(255,255,255,.1);border:none;color:#fff;border-radius:8px;padding:8px 14px;font-size:14px;font-weight:700;cursor:pointer">&#x2715; Schliessen</button>
-    </div>
-    <div style="padding:16px">
-
-      <!-- OVERVIEW -->
-      <div style="background:var(--acc-bg);border:1.5px solid var(--acc-b);border-radius:10px;padding:14px;margin-bottom:16px">
-        <div style="font-weight:800;font-size:15px;color:var(--acc);margin-bottom:6px">Uebersicht</div>
-        <div style="font-size:14px;line-height:1.7;color:var(--tx2)">Die App fuehrt durch die strukturierte Aufnahme eines Verkehrsunfalls mit Sachschaden in 5 Schritten. Alle Daten werden lokal auf dem Geraet gespeichert und koennen als ZIP-Datei exportiert werden.</div>
-      </div>
-
-      <!-- STEP 1 -->
-      <div style="background:var(--surf);border:1.5px solid var(--bdr);border-radius:10px;padding:14px;margin-bottom:10px">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-          <div style="width:32px;height:32px;background:var(--acc);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:14px;flex-shrink:0">1</div>
-          <div style="font-weight:800;font-size:15px">Unfallort</div>
-        </div>
-        <div style="font-size:13px;line-height:1.8;color:var(--tx2)">
-          &#x1F4CD; <b>GPS-Taste</b> antippen &rarr; Strasse und Gemeinde werden automatisch eingetragen<br>
-          &#x1F5FA;&#xFE0F; GPS-Koordinaten erscheinen mit direktem <b>Google Maps Link</b><br>
-          &#x26A1; Wetter, Strassenzustand und Lichtverhaeltnisse auswaehlen<br>
-          &#x1F4DD; Unfallhergang und Massnahmen in Textfelder eintragen
-        </div>
-      </div>
-
-      <!-- STEP 2 -->
-      <div style="background:var(--surf);border:1.5px solid var(--bdr);border-radius:10px;padding:14px;margin-bottom:10px">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-          <div style="width:32px;height:32px;background:var(--acc);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:14px;flex-shrink:0">2</div>
-          <div style="font-weight:800;font-size:15px">Fahrzeuge &amp; Objekte</div>
-        </div>
-        <div style="font-size:13px;line-height:1.8;color:var(--tx2)">
-          &#x2795; <b>Fahrzeug / Objekt hinzufuegen</b> fuer jedes beteiligte Fahrzeug antippen<br>
-          &#x1F4F7; Foto des Fahrzeugs machen &rarr; <b>Kennzeichen wird automatisch erkannt</b> (OCR)<br>
-          &#x1F4DD; Schadenbeschreibung eintragen<br>
-          &#x26A0;&#xFE0F; Auch Leitplanken, Gebaeude und sonstige Objekte koennen eingetragen werden
-        </div>
-      </div>
-
-      <!-- STEP 3 -->
-      <div style="background:var(--surf);border:1.5px solid var(--bdr);border-radius:10px;padding:14px;margin-bottom:10px">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-          <div style="width:32px;height:32px;background:var(--acc);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:14px;flex-shrink:0">3</div>
-          <div style="font-weight:800;font-size:15px">Lenker</div>
-        </div>
-        <div style="font-size:13px;line-height:1.8;color:var(--tx2)">
-          &#x2795; Lenker hinzufuegen und dem richtigen Fahrzeug zuordnen<br>
-          &#x1FAA6; <b>Fuehrerschein fotografieren</b> &rarr; Name, Geburtsdatum und FS-Klasse werden automatisch erkannt<br>
-          &#x1F4CB; <b>Zulassungsschein fotografieren</b> &rarr; Kennzeichen und Marke werden automatisch erkannt<br>
-          &#x1F4DE; Telefonnummer, Adresse und Versicherung eintragen<br>
-          &#x26A0;&#xFE0F; OCR-Erkennung benoetigt Internet und dauert ca. 10-20 Sekunden
-        </div>
-      </div>
-
-      <!-- STEP 4 -->
-      <div style="background:var(--surf);border:1.5px solid var(--bdr);border-radius:10px;padding:14px;margin-bottom:10px">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-          <div style="width:32px;height:32px;background:var(--acc);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:14px;flex-shrink:0">4</div>
-          <div style="font-weight:800;font-size:15px">Fotos</div>
-        </div>
-        <div style="font-size:13px;line-height:1.8;color:var(--tx2)">
-          &#x1F4F7; Gesamtansicht der Unfallstelle fotografieren<br>
-          &#x1F6E3;&#xFE0F; Spurenlage auf der Fahrbahn<br>
-          &#x1F6A7; Strassenschilder und Kilometerstein<br>
-          &#x2795; Weitere Fotos koennen jederzeit hinzugefuegt werden
-        </div>
-      </div>
-
-      <!-- STEP 5 -->
-      <div style="background:var(--surf);border:1.5px solid var(--bdr);border-radius:10px;padding:14px;margin-bottom:16px">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-          <div style="width:32px;height:32px;background:var(--ok);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:14px;flex-shrink:0">5</div>
-          <div style="font-weight:800;font-size:15px">Export &amp; Versand</div>
-        </div>
-        <div style="font-size:13px;line-height:1.8;color:var(--tx2)">
-          &#x1F4E6; <b>Lokal speichern</b>: ZIP-Datei mit PDF + allen Fotos wird in Downloads gespeichert<br>
-          &#x1F512; <b>Cryptshare</b>: Sicherer Upload ueber cryptshare.bmi.gv.at (nur im Polizei-Netz)<br>
-          &nbsp;&nbsp;&nbsp;&nbsp;1. Absender-Mail eintragen (eigene Adresse)<br>
-          &nbsp;&nbsp;&nbsp;&nbsp;2. Empfaenger-Mail eintragen<br>
-          &nbsp;&nbsp;&nbsp;&nbsp;3. OTP-Code anfordern &rarr; Code aus Mail eintragen<br>
-          &nbsp;&nbsp;&nbsp;&nbsp;4. Hochladen &rarr; Empfaenger bekommt Link automatisch
-        </div>
-      </div>
-
-      <!-- TIPS -->
-      <div style="background:var(--blu-bg);border:1.5px solid var(--blu-b);border-radius:10px;padding:14px;margin-bottom:10px">
-        <div style="font-weight:800;font-size:15px;color:var(--blu);margin-bottom:8px">&#x1F4A1; Tipps</div>
-        <div style="font-size:13px;line-height:1.9;color:var(--tx2)">
-          &#x1F4BE; <b>Zwischenspeichern</b>: Disk-Symbol oben rechts jederzeit antippen<br>
-          &#x1F504; <b>Entwurf laden</b>: Beim naechsten Oeffnen erscheint "Entwurf laden"<br>
-          &#x1F50D; OCR funktioniert am besten bei <b>guter Beleuchtung</b> und gerader Kameraausrichtung<br>
-          &#x1F4F1; App im <b>Vollbild-Modus</b> speichern: Browser-Menu &rarr; "Zum Startbildschirm"
-        </div>
-      </div>
-
-      <!-- VERSION -->
-      <div style="background:var(--surf2);border:1.5px solid var(--bdr);border-radius:10px;padding:12px 14px;text-align:center">
-        <div style="font-family:monospace;font-size:12px;color:var(--dim)">
-          Unfallaufnahme App v2.1 &middot; PI Telfs &middot; LPD Tirol<br>
-          Erstellt mit Claude AI &middot; Hosted on GitHub Pages<br>
-          PDF-Export: jsPDF &middot; OCR: Tesseract.js &middot; ZIP: JSZip
-        </div>
-      </div>
-
-    </div>
-  </div>
-</div>
-
 <script>
 "use strict";
 
-// ---- STATE ----
+// ──────────────────────────────────────────────────────
+// DATA
+// ──────────────────────────────────────────────────────
+var APP_VER = '3.0';
 var ct = 0;
-var FZ = [], LE = [], EP = [];
-var FZP = {}, LEP = {};
-var fzc = 1, lc = 1, epc = 0;
+var FZ = [], PERS = [], EP = [];
+var FZP = {}, PERSP = {};
+var fzc = 1, pc = 1, epc = 0;
+var currentProjectId = null;
 
-// ---- NAVIGATION ----
+// Tirol municipalities
+var TIROL_ORTE = [
+  'Abfaltersbach','Achenkirch','Achen','Ahrntal','Aldrans','Alpbach','Ampass',
+  'Angerberg','Angath','Aschau im Zillertal','Aschbach','Axams',
+  'Bad Häring','Baumkirchen','Berwang','Biberwier','Bichlbach','Birgitz',
+  'Breitenbach am Inn','Brixen im Thale','Bruck am Ziller','Buch in Tirol',
+  'Ebbs','Eben am Achensee','Erl','Erpfendorf',
+  'Fieberbrunn','Flaurling','Fliess','Fritzens','Fulpmes',
+  'Going am Wilden Kaiser','Grän','Gries am Brenner','Gries im Sellrain',
+  'Grinzens','Grossarl',
+  'Haiming','Hall in Tirol','Hatting','Heiming','Hippach','Hopfgarten',
+  'Imst','Imsterberg','Innsbruck','Ischgl',
+  'Jenbach','Jerzens',
+  'Kaltenbach','Kauns','Kirchberg in Tirol','Kirchbichl','Kitzbühel',
+  'Kössen','Kramsach','Kufstein','Kundl',
+  'Längenfeld','Lans','Landeck','Lermoos','Leutasch','Lienz',
+  'Matrei am Brenner','Matrei in Osttirol','Maurach','Mayrhofen',
+  'Mieming','Mils','Münster',
+  'Nassereith','Natters','Nauders','Niederau',
+  'Oberhofen im Inntal','Oberperfuss','Oetz',
+  'Patsch','Pflach','Pettnau','Pfaffenhofen',
+  'Reutte','Reith bei Kitzbühel','Ried im Oberinntal',
+  'Scheffau','Seefeld in Tirol','Serfaus','Silz','Sistrans','Schwaz',
+  'Steinach am Brenner','St. Anton am Arlberg','St. Johann in Tirol',
+  'Stumm','Stummerberg',
+  'Telfs','Terfens','Thiersee','Thaur','Tulfes',
+  'Volders','Vols','Vomp','Vomperbach',
+  'Wattens','Wattenberg','Westendorf','Wildermieming','Wiesing','Woergl',
+  'Zams','Zell am Ziller','Zell im Zillertal','Zirl','Zöblen'
+];
+
+var AUTO_MARKEN = [
+  'Alfa Romeo','Audi','BMW','Citroën','Cupra','Dacia','Fiat','Ford',
+  'Honda','Hyundai','Jeep','Kia','Lancia','Land Rover','Lexus','Mazda',
+  'Mercedes-Benz','MG','Mini','Mitsubishi','Nissan','Opel','Peugeot',
+  'Porsche','Renault','Seat','Skoda','Smart','Subaru','Suzuki',
+  'Tesla','Toyota','Volkswagen','Volvo'
+];
+
+var AUTO_FARBEN = [
+  'Schwarz','Weiss / Perlweiss','Silber / Grau','Dunkelgrau','Blau (hell)',
+  'Blau (dunkel)','Rot','Bordeauxrot','Gruen','Gelb','Orange','Braun / Beige',
+  'Violett / Lila','Sonstige'
+];
+
+// ──────────────────────────────────────────────────────
+// INIT DATALISTS
+// ──────────────────────────────────────────────────────
+function initDataLists() {
+  var dl = document.getElementById('gem-list');
+  TIROL_ORTE.forEach(function(o) {
+    var opt = document.createElement('option');
+    opt.value = o; dl.appendChild(opt);
+  });
+}
+
+// ──────────────────────────────────────────────────────
+// NAVIGATION
+// ──────────────────────────────────────────────────────
 function showScr(id) {
   document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('active'); });
   document.getElementById(id).classList.add('active');
@@ -497,7 +596,22 @@ function goTab(n) {
 function nextTab() { if (ct < 4) goTab(ct + 1); }
 function prevTab() { if (ct > 0) goTab(ct - 1); }
 
-// ---- HELPERS ----
+function goHome() {
+  saveProject();
+  showScr('s-start');
+  loadProjectList();
+}
+
+function showHelp() {
+  document.getElementById('help-modal').style.display = 'block';
+}
+function hideHelp() {
+  document.getElementById('help-modal').style.display = 'none';
+}
+
+// ──────────────────────────────────────────────────────
+// HELPERS
+// ──────────────────────────────────────────────────────
 function lDate() {
   var d = new Date(), p = function(n) { return String(n).padStart(2, '0'); };
   return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
@@ -507,69 +621,177 @@ function lTime() {
   return p(d.getHours()) + ':' + p(d.getMinutes());
 }
 function gv(id) { var e = document.getElementById(id); return e ? e.value : ''; }
-function sv(id, v) { var e = document.getElementById(id); if (e) e.value = v; }
+function sv(id, v) { var e = document.getElementById(id); if (e && v !== undefined) e.value = v; }
+function gc(id) { var e = document.getElementById(id); return e ? e.checked : false; }
+function sc(id, v) { var e = document.getElementById(id); if (e) e.checked = !!v; }
 
-function startApp() {
+// ──────────────────────────────────────────────────────
+// PROJECT MANAGEMENT
+// ──────────────────────────────────────────────────────
+function getAllProjects() {
+  try { return JSON.parse(localStorage.getItem('unfall-projects') || '[]'); }
+  catch(e) { return []; }
+}
+function saveAllProjects(arr) {
+  localStorage.setItem('unfall-projects', JSON.stringify(arr));
+}
+
+function loadProjectList() {
+  var projects = getAllProjects();
+  var el = document.getElementById('proj-list');
+  if (!projects.length) {
+    el.innerHTML = '<div style="text-align:center;padding:30px 20px;color:var(--dim)"><div style="font-size:32px;margin-bottom:8px">&#x1F4C2;</div><div style="font-size:14px;font-weight:600">Noch keine gespeicherten Aufnahmen</div></div>';
+    return;
+  }
+  var html = '';
+  projects.slice().reverse().forEach(function(p) {
+    html += '<div class="proj-item" onclick="loadProject(\'' + p.id + '\')">';
+    html += '<div class="proj-dot" style="background:' + (p.verletzte && p.verletzte !== 'Keine Verletzten' ? 'var(--red)' : 'var(--acc)') + '"></div>';
+    html += '<div style="flex:1;min-width:0">';
+    html += '<div style="font-weight:800;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + (p.label || 'Unbekannt') + '</div>';
+    html += '<div style="font-size:11px;color:var(--dim);margin-top:2px">' + (p.datum || '--') + ' &middot; ' + (p.gem || '') + ' &middot; ' + (p.fzCount || 0) + ' Fzg.</div>';
+    if (p.verletzte && p.verletzte !== 'Keine Verletzten') {
+      html += '<div class="inj-badge" style="margin-top:4px">&#x1FA79; ' + p.verletzte + '</div>';
+    }
+    html += '</div>';
+    html += '<button class="proj-del" onclick="event.stopPropagation();deleteProject(\'' + p.id + '\')">&#x1F5D1;</button>';
+    html += '</div>';
+  });
+  el.innerHTML = html;
+}
+
+function newProject() {
   resetState();
-  showScr('s1');
+  currentProjectId = 'proj-' + Date.now();
+  showScr('s-app');
   goTab(0);
   sv('f-datum', lDate());
   sv('f-uhrzeit', lTime());
   addEP(); addEP(); addEP();
 }
 
-// ---- GPS ----
+function loadProject(id) {
+  var projects = getAllProjects();
+  var p = projects.find(function(x) { return x.id === id; });
+  if (!p) return;
+  resetState();
+  currentProjectId = id;
+  showScr('s-app');
+  goTab(0);
+  var o = p.ort || {};
+  ['datum','uhrzeit','strasse','lat','lon','gem','bezirk','richtung',
+   'wetter','strverh','licht','vmax','strassentyp','hergang','mass','verletzte'].forEach(function(k) {
+    sv('f-' + k, o[k]);
+  });
+  sc('ret-rettung', o.ret_rettung);
+  sc('ret-feuerwehr', o.ret_feuerwehr);
+  sc('ret-notarzt', o.ret_notarzt);
+  sc('ret-heli', o.ret_heli);
+  updateRettung();
+  if (o.lat && o.lon) {
+    document.getElementById('gps-box').style.display = 'block';
+    document.getElementById('gps-disp').textContent = o.lat + ', ' + o.lon;
+    document.getElementById('gps-link').href = 'https://maps.google.com/?q=' + o.lat + ',' + o.lon;
+  }
+  FZ = p.FZ || []; fzc = Math.max.apply(null, [0].concat(FZ.map(function(f) { return f.id; }))) + 1;
+  FZP = p.FZP || {};
+  PERS = p.PERS || []; pc = Math.max.apply(null, [0].concat(PERS.map(function(x) { return x.id; }))) + 1;
+  PERSP = p.PERSP || {};
+  EP = p.EP || [];
+  renderFZ(); renderPers(); renderEP();
+  toast('Aufnahme geladen: ' + (p.label || id));
+}
+
+function deleteProject(id) {
+  if (!confirm('Aufnahme wirklich loeschen?')) return;
+  var projects = getAllProjects().filter(function(p) { return p.id !== id; });
+  saveAllProjects(projects);
+  loadProjectList();
+  toast('Geloescht');
+}
+
+function saveProject() {
+  FZ.forEach(function(fz) { saveFZ(fz.id); });
+  PERS.forEach(function(p) { savePers(p.id); });
+  var o = collectOrt();
+  var label = (o.datum || lDate()) + ' - ' + (o.gem || o.strasse || 'Unbekannt');
+  var projects = getAllProjects();
+  var idx = projects.findIndex(function(p) { return p.id === currentProjectId; });
+  var entry = {
+    id: currentProjectId,
+    label: label,
+    datum: o.datum,
+    gem: o.gem,
+    verletzte: o.verletzte,
+    fzCount: FZ.length,
+    ort: o, FZ: FZ, PERS: PERS, EP: EP, FZP: FZP, PERSP: PERSP,
+    ts: Date.now()
+  };
+  if (idx >= 0) projects[idx] = entry;
+  else projects.push(entry);
+  saveAllProjects(projects);
+  toast('Gespeichert: ' + label);
+}
+
+function confirmReset() {
+  if (!confirm('Neue Aufnahme beginnen? Aktuelle Daten werden gespeichert.')) return;
+  saveProject();
+  newProject();
+}
+
+// ──────────────────────────────────────────────────────
+// GPS
+// ──────────────────────────────────────────────────────
 function doGPS() {
   if (!navigator.geolocation) { alert('GPS nicht verfuegbar!'); return; }
   var btn = document.getElementById('gb1');
   btn.textContent = '...'; btn.disabled = true;
-
   navigator.geolocation.getCurrentPosition(
     function(pos) {
-      var lat = pos.coords.latitude;
-      var lon = pos.coords.longitude;
-
-      sv('f-lat', lat.toFixed(6));
-      sv('f-lon', lon.toFixed(6));
-
-      // Show GPS box
+      var lat = pos.coords.latitude, lon = pos.coords.longitude;
+      sv('f-lat', lat.toFixed(6)); sv('f-lon', lon.toFixed(6));
       document.getElementById('gps-box').style.display = 'block';
       document.getElementById('gps-disp').textContent = lat.toFixed(6) + ', ' + lon.toFixed(6);
       document.getElementById('gps-link').href = 'https://maps.google.com/?q=' + lat.toFixed(6) + ',' + lon.toFixed(6);
-
-      // Reverse geocode
       fetch('https://nominatim.openstreetmap.org/reverse?lat=' + lat + '&lon=' + lon + '&format=json&accept-language=de&zoom=17',
-        { headers: { 'User-Agent': 'PI-Telfs-Unfall/1.0' } })
+        { headers: { 'User-Agent': 'PI-Telfs-Unfall/3.0' } })
         .then(function(r) { return r.json(); })
         .then(function(d) {
           var a = d.address || {};
           var road = a.road || a.pedestrian || a.footway || '';
           var hn = a.house_number ? ' ' + a.house_number : '';
           var place = a.city || a.town || a.village || '';
+          var county = a.county || '';
           sv('f-strasse', [road + hn, place].filter(function(x) { return x.trim(); }).join(', ') || (lat.toFixed(6) + ', ' + lon.toFixed(6)));
-          if (place) {
-            var sel = document.getElementById('f-gem');
-            for (var i = 0; i < sel.options.length; i++) {
-              if (sel.options[i].text.toLowerCase().indexOf(place.toLowerCase().split(' ')[0]) === 0) {
-                sel.selectedIndex = i; break;
+          if (place) sv('f-gem', place);
+          // Auto bezirk from county
+          if (county) {
+            var bezSel = document.getElementById('f-bezirk');
+            for (var i = 0; i < bezSel.options.length; i++) {
+              if (county.toLowerCase().indexOf(bezSel.options[i].text.toLowerCase().split('-')[0]) >= 0) {
+                bezSel.selectedIndex = i; break;
               }
             }
           }
         })
-        .catch(function() {
-          sv('f-strasse', lat.toFixed(6) + ', ' + lon.toFixed(6));
-        });
-
+        .catch(function() { sv('f-strasse', lat.toFixed(6) + ', ' + lon.toFixed(6)); });
       btn.textContent = '\uD83D\uDCCD'; btn.disabled = false;
     },
-    function() {
-      alert('GPS-Fehler'); btn.textContent = '\uD83D\uDCCD'; btn.disabled = false;
-    },
+    function() { alert('GPS-Fehler'); btn.textContent = '\uD83D\uDCCD'; btn.disabled = false; },
     { enableHighAccuracy: true, timeout: 12000 }
   );
 }
 
-// ---- OCR ----
+function updateRettung() {
+  var sel = document.getElementById('f-verletzte');
+  var wrap = document.getElementById('f-rettung-wrap');
+  if (!sel || !wrap) return;
+  wrap.style.display = sel.value === 'Keine Verletzten' ? 'none' : 'block';
+}
+
+// ──────────────────────────────────────────────────────
+// OCR
+// ──────────────────────────────────────────────────────
 function compressImg(file, cb) {
   var reader = new FileReader();
   reader.onload = function(ev) {
@@ -588,34 +810,17 @@ function compressImg(file, cb) {
 }
 
 function runOCR(b64, cb) {
-  showBdg('ocr-global', 'OCR laeuft... (10-20 Sek.)');
   Tesseract.recognize(b64, 'deu', { logger: function() {} })
-    .then(function(result) {
-      rmBdg('ocr-global');
-      cb(result.data.text || '');
-    })
-    .catch(function(err) {
-      console.warn('OCR Fehler:', err);
-      rmBdg('ocr-global');
-      cb('');
-    });
+    .then(function(r) { cb(r.data.text || ''); })
+    .catch(function() { cb(''); });
 }
 
 function parseKZ(txt) {
   var upper = txt.replace(/\n/g, ' ').toUpperCase();
-  var found = [];
-  var words = upper.split(/\s+/);
-  for (var i = 0; i < words.length; i++) {
-    var w = words[i];
-    if (/^[A-Z]{1,3}-[A-Z0-9]{2,6}$/.test(w)) { found.push(w); }
-  }
-  // also try joined adjacent words
-  for (var j = 0; j < words.length - 1; j++) {
-    var combo = words[j] + '-' + words[j+1];
-    if (/^[A-Z]{1,3}-[A-Z0-9]{2,6}$/.test(combo)) { found.push(combo); }
-  }
-  if (!found.length) return null;
-  return found[0];
+  var ms = upper.match(/\b[A-Z]{1,3}[ \-][A-Z0-9]{2,6}\b/g);
+  if (!ms) return null;
+  var ok = ms.filter(function(m) { var c = m.replace(/[ \-]/, ''); return c.length >= 3 && c.length <= 9; });
+  return ok.length ? ok[0].replace(' ', '-') : null;
 }
 
 function parseFS(txt) {
@@ -623,166 +828,162 @@ function parseFS(txt) {
   var name = '', geb = '', fskl = '';
   for (var i = 0; i < lines.length; i++) {
     var l = lines[i].trim();
-    if (!l) continue;
-    if (/^1[.\s]/.test(l)) {
-      var n1 = l.replace(/^1[.\s]+/, '').trim();
-      if (n1.length > 1) name = n1;
-    }
-    if (/^2[.\s]/.test(l)) {
-      var n2 = l.replace(/^2[.\s]+/, '').trim();
-      if (n2.length > 1) name = (name + ' ' + n2).trim();
-    }
+    if (/^1[.\s]/.test(l)) { var n1 = l.replace(/^1[.\s]+/, '').trim(); if (n1.length > 1) name = n1; }
+    if (/^2[.\s]/.test(l)) { var n2 = l.replace(/^2[.\s]+/, '').trim(); if (n2.length > 1) name = (name + ' ' + n2).trim(); }
     var dm = l.match(/(\d{2})[.\-\/](\d{2})[.\-\/](\d{2,4})/);
     if (dm && !geb) {
       var yr = dm[3].length === 2 ? (parseInt(dm[3]) > 30 ? '19' + dm[3] : '20' + dm[3]) : dm[3];
       geb = yr + '-' + dm[2] + '-' + dm[1];
     }
-    if (/^9[.\s]/.test(l) || /^10[.\s]/.test(l)) {
-      fskl = l.replace(/^\d+[.\s]+/, '').trim();
-    }
+    if (/^9[.\s]/.test(l) || /^10[.\s]/.test(l)) fskl = l.replace(/^\d+[.\s]+/, '').trim();
   }
-  if (!name) {
-    var nm = txt.match(/([A-Z][a-z]+)\s+([A-Z][a-z]+)/);
-    if (nm) name = nm[1] + ' ' + nm[2];
-  }
+  if (!name) { var nm = txt.match(/([A-Z][a-z]+)\s+([A-Z][a-z]+)/); if (nm) name = nm[1] + ' ' + nm[2]; }
   return { name: name.trim(), geb: geb, fskl: fskl };
 }
 
 function parseZUL(txt) {
   var kz = parseKZ(txt) || '';
   var marke = '';
-  var brandList = ['Volkswagen','VW','BMW','Mercedes','Audi','Seat','Skoda','Opel',
-    'Ford','Renault','Peugeot','Fiat','Toyota','Honda','Hyundai','Kia','Volvo','Mazda'];
+  var brands = ['Volkswagen','VW','BMW','Mercedes','Audi','Seat','Skoda','Opel','Ford',
+    'Renault','Peugeot','Fiat','Toyota','Honda','Hyundai','Kia','Volvo','Mazda','Dacia'];
   var upper = txt.toUpperCase();
-  for (var i = 0; i < brandList.length; i++) {
-    if (upper.indexOf(brandList[i].toUpperCase()) >= 0) { marke = brandList[i]; break; }
+  for (var i = 0; i < brands.length; i++) {
+    if (upper.indexOf(brands[i].toUpperCase()) >= 0) { marke = brands[i]; break; }
   }
   return { kz: kz, marke: marke };
 }
 
-// ---- BADGE ----
 function showBdg(pid, msg, done, isWarn) {
   rmBdg(pid);
-  var p = document.getElementById(pid);
-  if (!p) return;
+  var p = document.getElementById(pid); if (!p) return;
   var b = document.createElement('div');
-  var cls = 'ocr-b';
-  if (done) cls += ' ok';
-  if (isWarn) cls += ' warn';
-  b.className = cls;
+  b.className = 'ocr-b' + (done ? ' ok' : isWarn ? ' warn' : '');
   b.id = 'bdg-' + pid;
-  if (done) b.textContent = 'OK: ' + msg;
-  else if (isWarn) b.textContent = 'Nicht lesbar - bitte manuell eintragen';
-  else b.innerHTML = '<span class="spin">&#x1F50D;</span> ' + msg + ' <span style="font-weight:400;font-size:11px">(ca. 10-20 Sek.)</span>';
+  b.innerHTML = done ? ('&#x2705; ' + msg) : isWarn ? ('&#x26A0;&#xFE0F; Nicht lesbar - manuell eintragen') : ('<span class="spin">&#x1F50D;</span> ' + msg + ' <span style="font-weight:400;font-size:10px">(ca. 15 Sek.)</span>');
   p.appendChild(b);
   if (done || isWarn) setTimeout(function() { rmBdg(pid); }, 6000);
 }
-function rmBdg(pid) {
-  var b = document.getElementById('bdg-' + pid);
-  if (b) b.remove();
-}
+function rmBdg(pid) { var b = document.getElementById('bdg-' + pid); if (b) b.remove(); }
 
-// Hidden global OCR status holder
-function ensureOCRDiv() {
-  if (!document.getElementById('ocr-global')) {
-    var d = document.createElement('div');
-    d.id = 'ocr-global';
-    d.style.cssText = 'position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:500';
-    document.body.appendChild(d);
-  }
-}
-
-// ---- FAHRZEUGE ----
+// ──────────────────────────────────────────────────────
+// FAHRZEUGE
+// ──────────────────────────────────────────────────────
 function addFZ() {
   var id = fzc++;
-  FZ.push({ id: id, typ:'PKW', kz:'', farbe:'', marke:'', modell:'', schaden:'' });
-  FZP[id] = [];
+  FZ.push({ id: id, typ: 'PKW', kz: '', marke: '', modell: '', farbe: '', schaden: '' });
+  FZP[id] = { fotos: [], zul: null };
   renderFZ();
 }
-function delFZ(id) {
-  FZ = FZ.filter(function(f) { return f.id !== id; });
-  delete FZP[id];
-  renderFZ();
-}
+function delFZ(id) { FZ = FZ.filter(function(f) { return f.id !== id; }); delete FZP[id]; renderFZ(); }
+
 function saveFZ(id) {
-  var fz = FZ.find(function(f) { return f.id === id; });
-  if (!fz) return;
+  var fz = FZ.find(function(f) { return f.id === id; }); if (!fz) return;
   fz.typ    = gv('fz-typ-' + id);
   fz.kz     = gv('fz-kz-' + id);
-  fz.farbe  = gv('fz-farbe-' + id);
   fz.marke  = gv('fz-marke-' + id);
   fz.modell = gv('fz-modell-' + id);
+  fz.farbe  = gv('fz-farbe-' + id);
   fz.schaden = gv('fz-schaden-' + id);
+}
+
+function buildMarkenOptions(sel) {
+  var html = '<option value="">-- Marke --</option>';
+  AUTO_MARKEN.forEach(function(m) { html += '<option>' + m + '</option>'; });
+  html += '<option>Sonstige</option>';
+  return html;
+}
+function buildFarbenOptions() {
+  var html = '<option value="">-- Farbe --</option>';
+  AUTO_FARBEN.forEach(function(f) { html += '<option>' + f + '</option>'; });
+  return html;
 }
 
 function renderFZ() {
   var el = document.getElementById('fz-list');
   if (!FZ.length) {
-    el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--dim);font-weight:600">Noch keine Fahrzeuge</div>';
+    el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--dim);font-size:14px;font-weight:600">Noch keine Fahrzeuge</div>';
     return;
   }
   var html = '';
-  for (var i = 0; i < FZ.length; i++) {
-    var fz = FZ[i];
-    var ii = i;
+  FZ.forEach(function(fz, i) {
+    var fp = FZP[fz.id] || { fotos: [], zul: null };
     html += '<div class="card" id="fz-c-' + fz.id + '">';
-    html += '<button class="cdel" onclick="delFZ(' + fz.id + ')">x</button>';
+    html += '<button class="cdel" onclick="delFZ(' + fz.id + ')">&#x2715;</button>';
     html += '<div class="card-hdr"><div class="cnum">' + (i+1) + '</div>';
-    html += '<div style="font-size:15px;font-weight:800">Fahrzeug / Objekt ' + (i+1) + '</div></div>';
+    html += '<div style="font-size:14px;font-weight:800">Fahrzeug / Objekt ' + (i+1) + '</div></div>';
+
+    // Typ
     html += '<div class="fld"><label>Typ</label><select id="fz-typ-' + fz.id + '" onchange="saveFZ(' + fz.id + ')">';
-    html += '<option>PKW</option><option>LKW</option><option>Motorrad</option><option>Moped</option>';
-    html += '<option>Fahrrad</option><option>E-Scooter</option><option>Traktor</option>';
-    html += '<option>Bus</option><option>Leitplanke / Objekt</option><option>Gebaeude</option><option>Sonstiges</option>';
+    ['PKW','LKW','Motorrad','Moped','Fahrrad','E-Scooter','Traktor','Bus','Leitplanke / Objekt','Gebaeude','Sonstiges'].forEach(function(t) {
+      html += '<option' + (fz.typ === t ? ' selected' : '') + '>' + t + '</option>';
+    });
     html += '</select></div>';
+
+    // Marke + Farbe
     html += '<div class="fld r2">';
+    html += '<div><label>Marke</label><select id="fz-marke-' + fz.id + '" onchange="saveFZ(' + fz.id + ')">' + buildMarkenOptions() + '</select></div>';
+    html += '<div><label>Farbe</label><select id="fz-farbe-' + fz.id + '" onchange="saveFZ(' + fz.id + ')">' + buildFarbenOptions() + '</select></div>';
+    html += '</div>';
+
+    // Modell + KZ
+    html += '<div class="fld r2">';
+    html += '<div><label>Modell / Typ</label><input type="text" id="fz-modell-' + fz.id + '" placeholder="z.B. Golf, 3er" onchange="saveFZ(' + fz.id + ')"></div>';
     html += '<div><label>Kennzeichen</label><input type="text" id="fz-kz-' + fz.id + '" placeholder="IL-12345" style="text-transform:uppercase" onchange="saveFZ(' + fz.id + ')"></div>';
-    html += '<div><label>Farbe</label><input type="text" id="fz-farbe-' + fz.id + '" placeholder="Rot" onchange="saveFZ(' + fz.id + ')"></div>';
     html += '</div>';
-    html += '<div class="fld r2">';
-    html += '<div><label>Marke</label><input type="text" id="fz-marke-' + fz.id + '" placeholder="VW" onchange="saveFZ(' + fz.id + ')"></div>';
-    html += '<div><label>Modell</label><input type="text" id="fz-modell-' + fz.id + '" placeholder="Golf" onchange="saveFZ(' + fz.id + ')"></div>';
-    html += '</div>';
-    html += '<div class="fld"><label>Schaden</label>';
-    html += '<textarea id="fz-schaden-' + fz.id + '" placeholder="z.B. Frontschaden links..." style="min-height:70px" onchange="saveFZ(' + fz.id + ')"></textarea></div>';
-    html += '<div class="fld"><label>Fotos (Kennzeichen wird erkannt)</label>';
+
+    // Schaden
+    html += '<div class="fld"><label>Schadenbeschreibung</label>';
+    html += '<textarea id="fz-schaden-' + fz.id + '" placeholder="z.B. Frontschaden links, Airbag..." style="min-height:65px" onchange="saveFZ(' + fz.id + ')"></textarea></div>';
+
+    // Fahrzeug-Fotos + OCR KZ
+    html += '<div class="fld"><label>Fotos Fahrzeug / Schaden (Kennzeichen wird erkannt)</label>';
     html += '<div class="pgrid" id="fz-pg-' + fz.id + '"></div>';
     html += '<div id="fz-ob-' + fz.id + '"></div>';
-    html += '<button class="add-btn" style="margin-top:6px;margin-bottom:0;font-size:13px;padding:10px" onclick="addFZP(' + fz.id + ')">+ Foto hinzufuegen</button>';
-    html += '</div></div>';
-  }
+    html += '<button class="add-btn" style="margin-top:6px;margin-bottom:0;padding:10px;font-size:12px" onclick="addFZFoto(' + fz.id + ')">&#x1F4F7; Fahrzeugfoto hinzufuegen</button></div>';
+
+    // Zulassungsschein beim Fahrzeug
+    html += '<div class="fld"><label>&#x1F4CB; Zulassungsschein (Kennzeichen wird erkannt)</label>';
+    html += '<div class="pslot wide' + (fp.zul ? ' has' : '') + '" onclick="capZul(' + fz.id + ')" id="fz-zul-slot-' + fz.id + '">';
+    if (fp.zul) {
+      html += '<img src="' + fp.zul + '"><button class="pdel" onclick="event.stopPropagation();FZP[' + fz.id + '].zul=null;renderFZ()">&#x2715;</button>';
+    } else {
+      html += '<div style="text-align:center;pointer-events:none"><div style="font-size:26px">&#x1F4CB;</div><div class="plbl">ZULASSUNGSSCHEIN TIPPEN</div></div>';
+    }
+    html += '</div><div id="fz-zul-ob-' + fz.id + '"></div></div>';
+
+    html += '</div>';
+  });
   el.innerHTML = html;
-  for (var j = 0; j < FZ.length; j++) {
-    var fz2 = FZ[j];
-    renderFZP(fz2.id);
-    if (fz2.typ) sv('fz-typ-' + fz2.id, fz2.typ);
-    if (fz2.kz) sv('fz-kz-' + fz2.id, fz2.kz);
-    if (fz2.farbe) sv('fz-farbe-' + fz2.id, fz2.farbe);
-    if (fz2.marke) sv('fz-marke-' + fz2.id, fz2.marke);
-    if (fz2.modell) sv('fz-modell-' + fz2.id, fz2.modell);
-    if (fz2.schaden) sv('fz-schaden-' + fz2.id, fz2.schaden);
-  }
+
+  FZ.forEach(function(fz) {
+    renderFZFotos(fz.id);
+    if (fz.marke) { var s = document.getElementById('fz-marke-' + fz.id); if (s) s.value = fz.marke; }
+    if (fz.farbe) { var sf = document.getElementById('fz-farbe-' + fz.id); if (sf) sf.value = fz.farbe; }
+    sv('fz-modell-' + fz.id, fz.modell);
+    sv('fz-kz-' + fz.id, fz.kz);
+    sv('fz-schaden-' + fz.id, fz.schaden);
+  });
 }
 
-function addFZP(fzId) {
+function addFZFoto(fzId) {
   var inp = document.createElement('input');
   inp.type = 'file'; inp.accept = 'image/*'; inp.capture = 'environment';
   inp.onchange = function(e) {
     var file = e.target.files[0]; if (!file) return;
     compressImg(file, function(b64) {
-      FZP[fzId].push(b64);
-      renderFZP(fzId);
+      if (!FZP[fzId]) FZP[fzId] = { fotos: [], zul: null };
+      FZP[fzId].fotos.push(b64);
+      renderFZFotos(fzId);
       var kzEl = document.getElementById('fz-kz-' + fzId);
       if (kzEl && !kzEl.value.trim()) {
         showBdg('fz-ob-' + fzId, 'Kennzeichen wird erkannt...');
-        ensureOCRDiv();
         runOCR(b64, function(txt) {
           var kz = parseKZ(txt);
           if (kz) {
-            kzEl.value = kz;
-            kzEl.classList.add('hi');
+            kzEl.value = kz; kzEl.classList.add('hi');
             saveFZ(fzId);
-            showBdg('fz-ob-' + fzId, 'Erkannt: ' + kz, true);
-            toast('Kennzeichen: ' + kz);
+            showBdg('fz-ob-' + fzId, 'Kennzeichen: ' + kz, true);
+            toast('KZ erkannt: ' + kz);
           } else {
             showBdg('fz-ob-' + fzId, '', false, true);
           }
@@ -793,781 +994,648 @@ function addFZP(fzId) {
   inp.click();
 }
 
-function renderFZP(fzId) {
-  var el = document.getElementById('fz-pg-' + fzId);
-  if (!el) return;
-  var ps = FZP[fzId] || [];
-  var html = '';
-  for (var i = 0; i < ps.length; i++) {
-    html += '<div class="pslot has"><img src="' + ps[i] + '">';
-    html += '<button class="pdel" onclick="FZP[' + fzId + '].splice(' + i + ',1);renderFZP(' + fzId + ')">x</button>';
-    html += '</div>';
-  }
-  el.innerHTML = html;
+function renderFZFotos(fzId) {
+  var el = document.getElementById('fz-pg-' + fzId); if (!el) return;
+  var ps = (FZP[fzId] || {}).fotos || [];
+  el.innerHTML = ps.map(function(src, i) {
+    return '<div class="pslot has"><img src="' + src + '"><button class="pdel" onclick="FZP[' + fzId + '].fotos.splice(' + i + ',1);renderFZFotos(' + fzId + ')">&#x2715;</button></div>';
+  }).join('');
 }
 
-// ---- LENKER ----
-function addL() {
-  var id = lc++;
-  LE.push({ id: id, fzId:'', name:'', geb:'', tel:'', adr:'', fskl:'', fsdat:'', vers:'' });
-  LEP[id] = { fs: null, zul: null };
-  renderL();
-}
-function delL(id) {
-  LE = LE.filter(function(l) { return l.id !== id; });
-  delete LEP[id];
-  renderL();
-}
-function saveL(id) {
-  var l = LE.find(function(x) { return x.id === id; });
-  if (!l) return;
-  l.fzId  = gv('l-fz-' + id);
-  l.name  = gv('l-name-' + id);
-  l.geb   = gv('l-geb-' + id);
-  l.tel   = gv('l-tel-' + id);
-  l.adr   = gv('l-adr-' + id);
-  l.fskl  = gv('l-fskl-' + id);
-  l.fsdat = gv('l-fsdat-' + id);
-  l.vers  = gv('l-vers-' + id);
-}
-
-function renderL() {
-  var el = document.getElementById('l-list');
-  if (!LE.length) {
-    el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--dim);font-weight:600">Noch keine Lenker</div>';
-    return;
-  }
-  var html = '';
-  for (var i = 0; i < LE.length; i++) {
-    var l = LE[i];
-    var lp = LEP[l.id] || {};
-    var fsHas = !!lp.fs;
-    var zulHas = !!lp.zul;
-    var fzOpts = '<option value="">- waehlen -</option>';
-    for (var j = 0; j < FZ.length; j++) {
-      fzOpts += '<option value="' + FZ[j].id + '">Fahrzeug ' + (j+1) + (FZ[j].kz ? ' (' + FZ[j].kz + ')' : '') + '</option>';
-    }
-    html += '<div class="card" id="l-c-' + l.id + '">';
-    html += '<button class="cdel" onclick="delL(' + l.id + ')">x</button>';
-    html += '<div class="card-hdr"><div class="cnum b">' + (i+1) + '</div>';
-    html += '<div style="font-size:15px;font-weight:800">Lenker ' + (i+1) + '</div></div>';
-    html += '<div class="fld"><label>Fahrzeug</label><select id="l-fz-' + l.id + '" onchange="saveL(' + l.id + ')">' + fzOpts + '</select></div>';
-    html += '<div class="fld"><label>Name, Vorname</label><input type="text" id="l-name-' + l.id + '" placeholder="Mustermann Max" onchange="saveL(' + l.id + ')"></div>';
-    html += '<div class="fld r2">';
-    html += '<div><label>Geburtsdatum</label><input type="date" id="l-geb-' + l.id + '" onchange="saveL(' + l.id + ')"></div>';
-    html += '<div><label>Telefon</label><input type="tel" id="l-tel-' + l.id + '" placeholder="+43 664..." onchange="saveL(' + l.id + ')"></div>';
-    html += '</div>';
-    html += '<div class="fld"><label>Wohnadresse</label><input type="text" id="l-adr-' + l.id + '" placeholder="Strasse, PLZ Ort" onchange="saveL(' + l.id + ')"></div>';
-    html += '<div class="fld r2">';
-    html += '<div><label>FS-Klasse</label><input type="text" id="l-fskl-' + l.id + '" placeholder="B, BE..." onchange="saveL(' + l.id + ')"></div>';
-    html += '<div><label>FS ausgestellt</label><input type="date" id="l-fsdat-' + l.id + '" onchange="saveL(' + l.id + ')"></div>';
-    html += '</div>';
-    html += '<div class="fld"><label>Versicherung</label><input type="text" id="l-vers-' + l.id + '" placeholder="z.B. Wiener Staedtische" onchange="saveL(' + l.id + ')"></div>';
-
-    // FS photo
-    html += '<div class="fld"><label>Fuehrerschein (wird automatisch ausgelesen)</label>';
-    if (fsHas) {
-      html += '<div class="pslot has" style="aspect-ratio:16/10"><img src="' + lp.fs + '">';
-      html += '<button class="pdel" onclick="LEP[' + l.id + '].fs=null;renderL()">x</button></div>';
-    } else {
-      html += '<div class="pslot" style="aspect-ratio:16/10" onclick="capDoc(' + l.id + ',\'fs\')">';
-      html += '<div style="text-align:center;pointer-events:none"><div style="font-size:28px">&#x1FAA6;</div><div class="plbl">FUEHRERSCHEIN FOTOGRAFIEREN</div></div>';
-      html += '</div>';
-    }
-    html += '<div id="l-fsob-' + l.id + '"></div></div>';
-
-    // ZUL photo
-    html += '<div class="fld"><label>Zulassungsschein (wird automatisch ausgelesen)</label>';
-    if (zulHas) {
-      html += '<div class="pslot has" style="aspect-ratio:16/10"><img src="' + lp.zul + '">';
-      html += '<button class="pdel" onclick="LEP[' + l.id + '].zul=null;renderL()">x</button></div>';
-    } else {
-      html += '<div class="pslot" style="aspect-ratio:16/10" onclick="capDoc(' + l.id + ',\'zul\')">';
-      html += '<div style="text-align:center;pointer-events:none"><div style="font-size:28px">&#x1F4CB;</div><div class="plbl">ZULASSUNGSSCHEIN FOTOGRAFIEREN</div></div>';
-      html += '</div>';
-    }
-    html += '<div id="l-zulob-' + l.id + '"></div></div>';
-    html += '</div>';
-  }
-  el.innerHTML = html;
-  for (var k = 0; k < LE.length; k++) {
-    var lx = LE[k];
-    if (lx.fzId) sv('l-fz-' + lx.id, lx.fzId);
-    if (lx.name) sv('l-name-' + lx.id, lx.name);
-    if (lx.geb) sv('l-geb-' + lx.id, lx.geb);
-    if (lx.tel) sv('l-tel-' + lx.id, lx.tel);
-    if (lx.adr) sv('l-adr-' + lx.id, lx.adr);
-    if (lx.fskl) sv('l-fskl-' + lx.id, lx.fskl);
-    if (lx.fsdat) sv('l-fsdat-' + lx.id, lx.fsdat);
-    if (lx.vers) sv('l-vers-' + lx.id, lx.vers);
-  }
-}
-
-function capDoc(lId, type) {
+function capZul(fzId) {
   var inp = document.createElement('input');
   inp.type = 'file'; inp.accept = 'image/*'; inp.capture = 'environment';
   inp.onchange = function(e) {
     var file = e.target.files[0]; if (!file) return;
     compressImg(file, function(b64) {
-      if (!LEP[lId]) LEP[lId] = { fs: null, zul: null };
-      LEP[lId][type] = b64;
-      renderL();
-      ensureOCRDiv();
-      if (type === 'fs') {
-        showBdg('l-fsob-' + lId, 'Fuehrerschein wird gelesen...');
-        runOCR(b64, function(txt) {
-          var r = parseFS(txt);
-          var filled = [];
-          var ne = document.getElementById('l-name-' + lId);
-          var ge = document.getElementById('l-geb-' + lId);
-          var ke = document.getElementById('l-fskl-' + lId);
-          if (r.name && ne && !ne.value) { ne.value = r.name; ne.classList.add('hi'); filled.push('Name'); }
-          if (r.geb && ge && !ge.value) { ge.value = r.geb; ge.classList.add('hi'); filled.push('Geb.datum'); }
-          if (r.fskl && ke && !ke.value) { ke.value = r.fskl; ke.classList.add('hi'); filled.push('FS-Klasse'); }
-          saveL(lId);
-          if (filled.length) {
-            showBdg('l-fsob-' + lId, filled.join(', ') + ' erkannt', true);
-            toast('FS: ' + (r.name || 'erkannt'));
-          } else {
-            showBdg('l-fsob-' + lId, '', false, true);
-          }
-        });
-      }
-      if (type === 'zul') {
-        showBdg('l-zulob-' + lId, 'Zulassungsschein wird gelesen...');
-        runOCR(b64, function(txt) {
-          var r = parseZUL(txt);
-          if (r.kz) {
-            var emptyFZ = null;
-            for (var i = 0; i < FZ.length; i++) { if (!FZ[i].kz || !FZ[i].kz.trim()) { emptyFZ = FZ[i]; break; } }
-            if (emptyFZ) {
-              var ke2 = document.getElementById('fz-kz-' + emptyFZ.id);
-              var me = document.getElementById('fz-marke-' + emptyFZ.id);
-              if (ke2 && !ke2.value) { ke2.value = r.kz; ke2.classList.add('hi'); }
-              if (r.marke && me && !me.value) { me.value = r.marke; me.classList.add('hi'); }
-              saveFZ(emptyFZ.id);
-            }
-          }
-          saveL(lId);
-          var msg = [r.kz, r.marke].filter(Boolean).join(' / ');
-          if (msg) { showBdg('l-zulob-' + lId, msg + ' erkannt', true); toast('Zulassung: ' + msg); }
-          else showBdg('l-zulob-' + lId, '', false, true);
-        });
-      }
+      if (!FZP[fzId]) FZP[fzId] = { fotos: [], zul: null };
+      FZP[fzId].zul = b64;
+      renderFZ();
+      showBdg('fz-zul-ob-' + fzId, 'Zulassungsschein wird gelesen...');
+      runOCR(b64, function(txt) {
+        var r = parseZUL(txt);
+        if (r.kz) {
+          var ke = document.getElementById('fz-kz-' + fzId);
+          var me = document.getElementById('fz-marke-' + fzId);
+          if (ke && !ke.value) { ke.value = r.kz; ke.classList.add('hi'); }
+          if (r.marke && me) { me.value = r.marke; me.classList.add('hi'); }
+          saveFZ(fzId);
+          showBdg('fz-zul-ob-' + fzId, [r.kz, r.marke].filter(Boolean).join(' / '), true);
+          toast('Zulassung: ' + r.kz);
+        } else {
+          showBdg('fz-zul-ob-' + fzId, '', false, true);
+        }
+      });
     });
   };
   inp.click();
 }
 
-// ---- EXTRA PHOTOS ----
+// ──────────────────────────────────────────────────────
+// PERSONEN (Lenker, Beifahrer, Fußgänger, Zeuge)
+// ──────────────────────────────────────────────────────
+function addPers() {
+  var id = pc++;
+  PERS.push({ id: id, rolle: 'Lenker', fzId: '', name: '', geb: '', tel: '', adr: '', fskl: '', vers: '', verletzung: 'Unverletzt' });
+  PERSP[id] = { fs: null };
+  renderPers();
+}
+function delPers(id) { PERS = PERS.filter(function(p) { return p.id !== id; }); delete PERSP[id]; renderPers(); }
+
+function savePers(id) {
+  var p = PERS.find(function(x) { return x.id === id; }); if (!p) return;
+  p.rolle     = gv('p-rolle-' + id);
+  p.fzId      = gv('p-fz-' + id);
+  p.name      = gv('p-name-' + id);
+  p.geb       = gv('p-geb-' + id);
+  p.tel       = gv('p-tel-' + id);
+  p.adr       = gv('p-adr-' + id);
+  p.fskl      = gv('p-fskl-' + id);
+  p.vers      = gv('p-vers-' + id);
+  p.verletzung = gv('p-verl-' + id);
+  p.verldetail = gv('p-verldet-' + id);
+}
+
+function renderPers() {
+  var el = document.getElementById('pers-list');
+  if (!PERS.length) {
+    el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--dim);font-size:14px;font-weight:600">Noch keine Personen</div>';
+    return;
+  }
+  var html = '';
+  PERS.forEach(function(p, i) {
+    var pp = PERSP[p.id] || {};
+    var isVerletzt = p.verletzung && p.verletzung !== 'Unverletzt';
+    var fzOpts = '<option value="">-- Fahrzeug --</option>';
+    FZ.forEach(function(fz, fi) { fzOpts += '<option value="' + fz.id + '"' + (String(p.fzId) === String(fz.id) ? ' selected' : '') + '>Fzg. ' + (fi+1) + (fz.kz ? ' (' + fz.kz + ')' : '') + '</option>'; });
+
+    // Header color by role
+    var numColor = p.rolle === 'Lenker' ? '' : p.rolle === 'Verletzter' ? ' r' : ' b';
+
+    html += '<div class="card" id="p-c-' + p.id + '">';
+    html += '<button class="cdel" onclick="delPers(' + p.id + ')">&#x2715;</button>';
+    html += '<div class="card-hdr"><div class="cnum' + numColor + '">' + (i+1) + '</div>';
+    html += '<div><div style="font-size:14px;font-weight:800">Person ' + (i+1) + '</div>';
+    if (isVerletzt) html += '<div class="inj-badge" style="margin-top:3px">&#x1FA79; ' + p.verletzung + '</div>';
+    html += '</div></div>';
+
+    // Rolle + Fahrzeug
+    html += '<div class="fld r2">';
+    html += '<div><label>Rolle</label><select id="p-rolle-' + p.id + '" onchange="savePers(' + p.id + ')">';
+    ['Lenker','Beifahrer vorne','Beifahrer hinten links','Beifahrer hinten rechts','Fussgaenger','Radfahrer','Zeuge','Sonstige'].forEach(function(r) {
+      html += '<option' + (p.rolle === r ? ' selected' : '') + '>' + r + '</option>';
+    });
+    html += '</select></div>';
+    html += '<div><label>Fahrzeug</label><select id="p-fz-' + p.id + '" onchange="savePers(' + p.id + ')">' + fzOpts + '</select></div>';
+    html += '</div>';
+
+    // Name
+    html += '<div class="fld"><label>Name, Vorname</label><input type="text" id="p-name-' + p.id + '" placeholder="Mustermann Max" value="' + (p.name || '') + '" onchange="savePers(' + p.id + ')"></div>';
+
+    // Geburtsdatum + Tel
+    html += '<div class="fld r2">';
+    html += '<div><label>Geburtsdatum</label><input type="date" id="p-geb-' + p.id + '" value="' + (p.geb || '') + '" onchange="savePers(' + p.id + ')"></div>';
+    html += '<div><label>Telefon</label><input type="tel" id="p-tel-' + p.id + '" placeholder="+43 664..." value="' + (p.tel || '') + '" onchange="savePers(' + p.id + ')"></div>';
+    html += '</div>';
+
+    // Adresse
+    html += '<div class="fld"><label>Wohnadresse</label><input type="text" id="p-adr-' + p.id + '" placeholder="Strasse, PLZ Ort" value="' + (p.adr || '') + '" onchange="savePers(' + p.id + ')"></div>';
+
+    // FS-Klasse + Versicherung
+    html += '<div class="fld r2">';
+    html += '<div><label>FS-Klasse</label><select id="p-fskl-' + p.id + '" onchange="savePers(' + p.id + ')">';
+    ['', 'AM','A1','A2','A','B','BE','C1','C','CE','D','keine / nicht zutreffend'].forEach(function(k) {
+      html += '<option' + (p.fskl === k ? ' selected' : '') + '>' + k + '</option>';
+    });
+    html += '</select></div>';
+    html += '<div><label>Versicherung</label><input type="text" id="p-vers-' + p.id + '" placeholder="z.B. Wiener Staedtische" value="' + (p.vers || '') + '" onchange="savePers(' + p.id + ')"></div>';
+    html += '</div>';
+
+    // VERLETZUNG
+    html += '<div class="fld"><label>Verletzungsgrad</label>';
+    html += '<select id="p-verl-' + p.id + '" onchange="savePers(' + p.id + ');toggleVerlDetail(' + p.id + ')">';
+    ['Unverletzt','Leicht verletzt','Schwer verletzt','Lebensbedrohlich verletzt','Toedlich verletzt (an Unfallstelle)'].forEach(function(v) {
+      html += '<option' + (p.verletzung === v ? ' selected' : '') + '>' + v + '</option>';
+    });
+    html += '</select></div>';
+    html += '<div class="fld" id="p-verldet-wrap-' + p.id + '" style="display:' + (isVerletzt ? 'block' : 'none') + '">';
+    html += '<label>Verletzungsbeschreibung</label>';
+    html += '<textarea id="p-verldet-' + p.id + '" placeholder="z.B. Schnittwunden am Arm, Verdacht auf Rippenbruch..." style="min-height:60px" onchange="savePers(' + p.id + ')">' + (p.verldetail || '') + '</textarea></div>';
+
+    // FS Foto
+    html += '<div class="fld"><label>&#x1FAA6; Fuehrerschein (automatisch ausgelesen)</label>';
+    html += '<div class="pslot wide' + (pp.fs ? ' has' : '') + '" onclick="capFS(' + p.id + ')">';
+    if (pp.fs) {
+      html += '<img src="' + pp.fs + '"><button class="pdel" onclick="event.stopPropagation();PERSP[' + p.id + '].fs=null;renderPers()">&#x2715;</button>';
+    } else {
+      html += '<div style="text-align:center;pointer-events:none"><div style="font-size:26px">&#x1FAA6;</div><div class="plbl">FUEHRERSCHEIN TIPPEN</div></div>';
+    }
+    html += '</div><div id="p-fsob-' + p.id + '"></div></div>';
+
+    html += '</div>';
+  });
+  el.innerHTML = html;
+}
+
+function toggleVerlDetail(id) {
+  var sel = document.getElementById('p-verl-' + id);
+  var wrap = document.getElementById('p-verldet-wrap-' + id);
+  if (sel && wrap) wrap.style.display = sel.value !== 'Unverletzt' ? 'block' : 'none';
+}
+
+function capFS(pId) {
+  var inp = document.createElement('input');
+  inp.type = 'file'; inp.accept = 'image/*'; inp.capture = 'environment';
+  inp.onchange = function(e) {
+    var file = e.target.files[0]; if (!file) return;
+    compressImg(file, function(b64) {
+      if (!PERSP[pId]) PERSP[pId] = { fs: null };
+      PERSP[pId].fs = b64;
+      renderPers();
+      showBdg('p-fsob-' + pId, 'Fuehrerschein wird gelesen...');
+      runOCR(b64, function(txt) {
+        var r = parseFS(txt);
+        var filled = [];
+        var ne = document.getElementById('p-name-' + pId);
+        var ge = document.getElementById('p-geb-' + pId);
+        var ke = document.getElementById('p-fskl-' + pId);
+        if (r.name && ne && !ne.value) { ne.value = r.name; ne.classList.add('hi'); filled.push('Name'); }
+        if (r.geb && ge && !ge.value) { ge.value = r.geb; ge.classList.add('hi'); filled.push('Geb.datum'); }
+        if (r.fskl && ke) { ke.value = r.fskl; ke.classList.add('hi'); filled.push('FS-Klasse'); }
+        savePers(pId);
+        if (filled.length) { showBdg('p-fsob-' + pId, filled.join(', ') + ' erkannt', true); toast('FS: ' + (r.name || 'erkannt')); }
+        else showBdg('p-fsob-' + pId, '', false, true);
+      });
+    });
+  };
+  inp.click();
+}
+
+// ──────────────────────────────────────────────────────
+// EXTRA PHOTOS
+// ──────────────────────────────────────────────────────
 function addEP() {
-  var id = epc++;
-  EP.push({ id: id, src: null });
-  renderEP();
+  EP.push({ id: epc++, src: null }); renderEP();
 }
 function renderEP() {
   var el = document.getElementById('ep-grid');
-  var html = '';
-  for (var i = 0; i < EP.length; i++) {
-    var p = EP[i];
-    if (p.src) {
-      html += '<div class="pslot has" style="position:relative"><img src="' + p.src + '">';
-      html += '<button class="pdel" onclick="EP.find(function(x){return x.id===' + p.id + ';}).src=null;renderEP()">x</button></div>';
-    } else {
-      html += '<div class="pslot" onclick="capEP(' + p.id + ')">';
-      html += '<div style="text-align:center;pointer-events:none"><div style="font-size:28px">&#x1F4F7;</div>';
-      html += '<div class="plbl">Foto ' + (i+1) + '</div></div></div>';
-    }
-  }
-  el.innerHTML = html;
+  el.innerHTML = EP.map(function(p, i) {
+    if (p.src) return '<div class="pslot has" style="position:relative"><img src="' + p.src + '"><button class="pdel" onclick="EP.find(function(x){return x.id===' + p.id + ';}).src=null;renderEP()">&#x2715;</button></div>';
+    return '<div class="pslot" onclick="capEP(' + p.id + ')"><div style="text-align:center;pointer-events:none"><div style="font-size:24px">&#x1F4F7;</div><div class="plbl">Foto ' + (i+1) + '</div></div></div>';
+  }).join('');
 }
 function capEP(id) {
   var inp = document.createElement('input');
   inp.type = 'file'; inp.accept = 'image/*'; inp.capture = 'environment';
   inp.onchange = function(e) {
     var file = e.target.files[0]; if (!file) return;
-    compressImg(file, function(b64) {
-      var p = EP.find(function(x) { return x.id === id; });
-      if (p) p.src = b64;
-      renderEP();
-    });
+    compressImg(file, function(b64) { var p = EP.find(function(x) { return x.id === id; }); if (p) p.src = b64; renderEP(); });
   };
   inp.click();
 }
 
-// ---- DATA ----
+// ──────────────────────────────────────────────────────
+// DATA COLLECTION
+// ──────────────────────────────────────────────────────
 function collectOrt() {
   return {
-    datum:   gv('f-datum'),
-    uhrzeit: gv('f-uhrzeit'),
-    strasse: gv('f-strasse'),
-    lat:     gv('f-lat'),
-    lon:     gv('f-lon'),
-    gem:     gv('f-gem'),
-    richtung:gv('f-richtung'),
-    wetter:  gv('f-wetter'),
-    strverh: gv('f-strverh'),
-    licht:   gv('f-licht'),
-    vmax:    gv('f-vmax'),
-    fahr:    gv('f-fahr'),
-    hergang: gv('f-hergang'),
-    mass:    gv('f-mass')
+    datum:       gv('f-datum'),
+    uhrzeit:     gv('f-uhrzeit'),
+    strasse:     gv('f-strasse'),
+    lat:         gv('f-lat'),
+    lon:         gv('f-lon'),
+    gem:         gv('f-gem'),
+    bezirk:      gv('f-bezirk'),
+    richtung:    gv('f-richtung'),
+    wetter:      gv('f-wetter'),
+    strverh:     gv('f-strverh'),
+    licht:       gv('f-licht'),
+    vmax:        gv('f-vmax'),
+    strassentyp: gv('f-strassentyp'),
+    hergang:     gv('f-hergang'),
+    mass:        gv('f-mass'),
+    verletzte:   gv('f-verletzte'),
+    ret_rettung:  gc('ret-rettung'),
+    ret_feuerwehr: gc('ret-feuerwehr'),
+    ret_notarzt:  gc('ret-notarzt'),
+    ret_heli:     gc('ret-heli')
   };
 }
 
-function saveData() {
-  FZ.forEach(function(fz) { saveFZ(fz.id); });
-  LE.forEach(function(l) { saveL(l.id); });
-  var data = { ort: collectOrt(), FZ: FZ, LE: LE, EP: EP, FZP: FZP, LEP: LEP };
-  localStorage.setItem('unfall-d', JSON.stringify({ data: data, ts: Date.now() }));
-  toast('Entwurf gespeichert');
-}
-
-function loadSaved() {
-  var s = localStorage.getItem('unfall-d');
-  if (!s) { alert('Kein Entwurf gefunden.'); return; }
-  var saved = JSON.parse(s);
-  var d = saved.data;
-  startApp();
-  setTimeout(function() {
-    var o = d.ort || {};
-    var keys = ['datum','uhrzeit','strasse','lat','lon','gem','richtung','wetter','strverh','licht','vmax','fahr','hergang','mass'];
-    for (var i = 0; i < keys.length; i++) { if (o[keys[i]]) sv('f-' + keys[i], o[keys[i]]); }
-    if (o.lat && o.lon) {
-      document.getElementById('gps-box').style.display = 'block';
-      document.getElementById('gps-disp').textContent = o.lat + ', ' + o.lon;
-      document.getElementById('gps-link').href = 'https://maps.google.com/?q=' + o.lat + ',' + o.lon;
-    }
-    FZ = d.FZ || []; fzc = 1;
-    for (var j = 0; j < FZ.length; j++) { if (FZ[j].id >= fzc) fzc = FZ[j].id + 1; }
-    FZP = d.FZP || {};
-    LE = d.LE || []; lc = 1;
-    for (var k = 0; k < LE.length; k++) { if (LE[k].id >= lc) lc = LE[k].id + 1; }
-    LEP = d.LEP || {};
-    EP = d.EP || [];
-    renderFZ(); renderL(); renderEP();
-    toast('Entwurf geladen');
-  }, 200);
-}
-
-// ---- SUMMARY ----
+// ──────────────────────────────────────────────────────
+// SUMMARY
+// ──────────────────────────────────────────────────────
 function buildSummary() {
   FZ.forEach(function(fz) { saveFZ(fz.id); });
-  LE.forEach(function(l) { saveL(l.id); });
+  PERS.forEach(function(p) { savePers(p.id); });
   var o = collectOrt();
-  var mapsUrl = (o.lat && o.lon) ? ('https://maps.google.com/?q=' + o.lat + ',' + o.lon) : '';
+  var mapsUrl = o.lat && o.lon ? ('https://maps.google.com/?q=' + o.lat + ',' + o.lon) : '';
+  var html = '';
 
-  var html = '<div class="sec" style="border-color:var(--acc-b)">';
+  // Ort
+  html += '<div class="sec" style="border-color:var(--acc-b)">';
   html += '<div class="sec-hdr"><div class="sec-ico">&#x1F4CD;</div><div><div class="sec-ttl">Unfallort &amp; Zeit</div></div></div>';
-  html += '<div class="srow"><span class="sl">Datum</span><span class="sv">' + (o.datum || '-') + '</span></div>';
-  html += '<div class="srow"><span class="sl">Uhrzeit</span><span class="sv">' + (o.uhrzeit || '-') + '</span></div>';
-  html += '<div class="srow"><span class="sl">Strasse</span><span class="sv">' + (o.strasse || '-') + '</span></div>';
-  html += '<div class="srow"><span class="sl">Gemeinde</span><span class="sv">' + o.gem + '</span></div>';
-  if (o.lat && o.lon) {
-    html += '<div class="srow"><span class="sl">GPS</span><span class="sv">';
-    html += '<div style="font-family:monospace;font-size:13px;margin-bottom:4px">' + o.lat + ', ' + o.lon + '</div>';
-    html += '<a href="' + mapsUrl + '" target="_blank" style="display:inline-flex;align-items:center;gap:5px;background:var(--blu-bg);border:1.5px solid var(--blu-b);color:var(--blu);border-radius:6px;padding:5px 10px;font-size:12px;font-weight:700;text-decoration:none">&#x1F5FA;&#xFE0F; Google Maps</a>';
-    html += '</span></div>';
-  }
-  html += '<div class="srow"><span class="sl">Wetter</span><span class="sv">' + o.wetter + '</span></div>';
+  ['Datum:' + o.datum, 'Uhrzeit:' + o.uhrzeit, 'Strasse:' + o.strasse, 'Gemeinde:' + o.gem, 'Bezirk:' + o.bezirk, 'Wetter:' + o.wetter, 'Strasse:' + o.strverh].forEach(function(r) {
+    var p = r.split(':'); if (p[1] && p[1].trim()) html += '<div class="srow"><span class="sl">' + p[0] + '</span><span class="sv">' + p.slice(1).join(':') + '</span></div>';
+  });
+  if (o.verletzte !== 'Keine Verletzten') html += '<div class="srow"><span class="sl" style="color:var(--red)">Verletzte</span><span class="sv" style="color:var(--red);font-weight:800">' + o.verletzte + '</span></div>';
+  if (mapsUrl) html += '<div style="margin-top:8px"><a href="' + mapsUrl + '" target="_blank" style="display:inline-flex;align-items:center;gap:6px;background:var(--blu-bg);border:1.5px solid var(--blu-b);color:var(--blu);border-radius:6px;padding:6px 11px;font-size:12px;font-weight:700;text-decoration:none">&#x1F5FA;&#xFE0F; Google Maps &middot; ' + o.lat + ', ' + o.lon + '</a></div>';
   html += '</div>';
 
-  for (var i = 0; i < FZ.length; i++) {
-    var fz = FZ[i];
-    var ps = FZP[fz.id] || [];
-    html += '<div class="sec">';
-    html += '<div class="sec-hdr"><div class="sec-ico">&#x1F697;</div><div><div class="sec-ttl">Fahrzeug ' + (i+1) + ': ' + (fz.kz || '-') + '</div></div></div>';
+  // Fahrzeuge
+  FZ.forEach(function(fz, i) {
+    var fp = FZP[fz.id] || { fotos: [], zul: null };
+    html += '<div class="sec"><div class="sec-hdr"><div class="sec-ico">&#x1F697;</div><div><div class="sec-ttl">Fahrzeug ' + (i+1) + ': ' + (fz.kz || '-') + '</div></div></div>';
     html += '<div class="srow"><span class="sl">Typ</span><span class="sv">' + (fz.typ || '-') + '</span></div>';
     html += '<div class="srow"><span class="sl">Kennzeichen</span><span class="sv">' + (fz.kz || '-') + '</span></div>';
     html += '<div class="srow"><span class="sl">Fahrzeug</span><span class="sv">' + ([fz.farbe, fz.marke, fz.modell].filter(Boolean).join(' ') || '-') + '</span></div>';
     html += '<div class="srow"><span class="sl">Schaden</span><span class="sv">' + (fz.schaden || '-') + '</span></div>';
-    if (ps.length) {
-      html += '<div class="simgs">';
-      for (var pi = 0; pi < ps.length; pi++) html += '<img src="' + ps[pi] + '">';
-      html += '</div>';
-    }
+    if (fp.fotos.length) html += '<div class="simgs">' + fp.fotos.map(function(s) { return '<img src="' + s + '">'; }).join('') + '</div>';
+    if (fp.zul) html += '<div style="margin-top:6px"><img src="' + fp.zul + '" style="width:100%;max-height:80px;object-fit:cover;border-radius:6px;border:1.5px solid var(--ok)"></div>';
     html += '</div>';
-  }
+  });
 
-  for (var li = 0; li < LE.length; li++) {
-    var l = LE[li];
-    var fi = -1;
-    for (var fi2 = 0; fi2 < FZ.length; fi2++) { if (String(FZ[fi2].id) === String(l.fzId)) { fi = fi2; break; } }
-    var lp = LEP[l.id] || {};
-    html += '<div class="sec">';
-    html += '<div class="sec-hdr"><div class="sec-ico">&#x1F464;</div>';
-    html += '<div><div class="sec-ttl">Lenker ' + (li+1) + ': ' + (l.name || '-') + '</div>';
-    if (fi >= 0) html += '<div class="sec-sub">Fahrzeug ' + (fi+1) + '</div>';
-    html += '</div></div>';
-    html += '<div class="srow"><span class="sl">Name</span><span class="sv">' + (l.name || '-') + '</span></div>';
-    html += '<div class="srow"><span class="sl">Geburtsdatum</span><span class="sv">' + (l.geb || '-') + '</span></div>';
-    html += '<div class="srow"><span class="sl">Adresse</span><span class="sv">' + (l.adr || '-') + '</span></div>';
-    html += '<div class="srow"><span class="sl">Telefon</span><span class="sv">' + (l.tel || '-') + '</span></div>';
-    html += '<div class="srow"><span class="sl">FS-Klasse</span><span class="sv">' + (l.fskl || '-') + '</span></div>';
-    html += '<div class="srow"><span class="sl">Versicherung</span><span class="sv">' + (l.vers || '-') + '</span></div>';
-    html += '<div style="display:flex;gap:6px;margin-top:8px">';
-    if (lp.fs) html += '<img src="' + lp.fs + '" style="flex:1;aspect-ratio:16/10;object-fit:cover;border-radius:8px;border:2px solid var(--ok)">';
-    if (lp.zul) html += '<img src="' + lp.zul + '" style="flex:1;aspect-ratio:16/10;object-fit:cover;border-radius:8px;border:2px solid var(--blu)">';
-    html += '</div></div>';
-  }
+  // Personen
+  PERS.forEach(function(p, i) {
+    var pp = PERSP[p.id] || {};
+    var isVerl = p.verletzung && p.verletzung !== 'Unverletzt';
+    html += '<div class="sec" style="border-color:' + (isVerl ? 'var(--red-b)' : 'var(--bdr)') + '">';
+    html += '<div class="sec-hdr"><div class="sec-ico' + (isVerl ? ' red' : '') + '">&#x1F464;</div>';
+    html += '<div><div class="sec-ttl">Person ' + (i+1) + ': ' + (p.name || '-') + '</div><div class="sec-sub">' + p.rolle + '</div></div></div>';
+    html += '<div class="srow"><span class="sl">Name</span><span class="sv">' + (p.name || '-') + '</span></div>';
+    html += '<div class="srow"><span class="sl">Geburtsdatum</span><span class="sv">' + (p.geb || '-') + '</span></div>';
+    html += '<div class="srow"><span class="sl">Adresse</span><span class="sv">' + (p.adr || '-') + '</span></div>';
+    if (isVerl) html += '<div class="srow"><span class="sl" style="color:var(--red)">Verletzung</span><span class="sv" style="color:var(--red)">' + p.verletzung + '</span></div>';
+    if (pp.fs) html += '<div style="margin-top:6px"><img src="' + pp.fs + '" style="width:100%;max-height:70px;object-fit:cover;border-radius:6px;border:1.5px solid var(--ok)"></div>';
+    html += '</div>';
+  });
 
+  // Fotos
   var epList = EP.filter(function(p) { return p.src; });
   if (epList.length) {
-    html += '<div class="sec"><div class="sec-hdr"><div class="sec-ico">&#x1F4F7;</div>';
-    html += '<div><div class="sec-ttl">Unfallfotos (' + epList.length + ')</div></div></div>';
-    html += '<div class="simgs">';
-    for (var epi = 0; epi < epList.length; epi++) html += '<img src="' + epList[epi].src + '">';
-    html += '</div></div>';
+    html += '<div class="sec"><div class="sec-hdr"><div class="sec-ico">&#x1F4F7;</div><div><div class="sec-ttl">Unfallfotos (' + epList.length + ')</div></div></div>';
+    html += '<div class="simgs">' + epList.map(function(p) { return '<img src="' + p.src + '">'; }).join('') + '</div></div>';
   }
 
-  var totalPics = 0;
-  for (var fpi = 0; fpi < FZ.length; fpi++) totalPics += (FZP[FZ[fpi].id] || []).length;
-  for (var lei = 0; lei < LE.length; lei++) {
-    var lpe = LEP[LE[lei].id] || {};
-    if (lpe.fs) totalPics++;
-    if (lpe.zul) totalPics++;
-  }
-  totalPics += epList.length;
+  // Stats
+  var totalPics = FZ.reduce(function(a, fz) { return a + ((FZP[fz.id] || {}).fotos || []).length + (FZP[fz.id] && FZP[fz.id].zul ? 1 : 0); }, 0)
+    + PERS.reduce(function(a, p) { return a + (PERSP[p.id] && PERSP[p.id].fs ? 1 : 0); }, 0)
+    + epList.length;
+  html += '<div class="ibox a">&#x1F4CA; ' + FZ.length + ' Fzg. &middot; ' + PERS.length + ' Pers. &middot; ' + totalPics + ' Fotos</div>';
 
-  html += '<div class="ibox a">Zusammenfassung: ' + FZ.length + ' Fahrzeug(e) - ' + LE.length + ' Lenker - ' + totalPics + ' Foto(s)</div>';
   document.getElementById('summary').innerHTML = html;
 }
 
-// ---- PDF ----
+// ──────────────────────────────────────────────────────
+// PDF EXPORT
+// ──────────────────────────────────────────────────────
 function buildPDF() {
   var jsPDF = window.jspdf.jsPDF;
   var doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-  var W = 210, mg = 15, cw = W - mg * 2;
+  var W = 210, mg = 14, cw = W - mg * 2;
   var y = mg;
 
-  doc.setFillColor(13, 20, 32); doc.rect(0, 0, W, 28, 'F');
-  doc.setTextColor(255, 255, 255); doc.setFontSize(16); doc.setFont('helvetica', 'bold');
-  doc.text('PI Telfs - Verkehrsunfall Sachschaden', mg, 12);
-  doc.setFontSize(9); doc.setFont('helvetica', 'normal'); doc.setTextColor(150, 170, 200);
-  doc.text('LPD Tirol - Erstellt: ' + new Date().toLocaleString('de-AT'), mg, 20);
-  y = 35;
-
-  function chk() { if (y > 270) { doc.addPage(); y = mg; } }
-  function sec(t) {
-    chk();
-    doc.setFillColor(240, 244, 248); doc.rect(mg, y, cw, 7, 'F');
-    doc.setTextColor(13, 20, 32); doc.setFontSize(10); doc.setFont('helvetica', 'bold');
-    doc.text(t, mg + 3, y + 5); y += 10;
-  }
-  function row(lbl, val) {
-    chk();
-    doc.setFontSize(9); doc.setFont('helvetica', 'bold'); doc.setTextColor(100, 120, 150);
-    doc.text(lbl, mg, y);
-    doc.setFont('helvetica', 'normal'); doc.setTextColor(13, 20, 32);
-    var ls = doc.splitTextToSize(val || '-', cw - 55);
-    doc.text(ls, mg + 55, y); y += 5 * ls.length + 1;
-  }
-  function addImg(b64, lbl) {
-    if (!b64) return; chk();
-    try {
-      // Get real image dimensions to preserve aspect ratio
-      var imgData = doc.getImageProperties(b64);
-      var maxW = cw;          // full content width
-      var maxH = 100;         // max height in mm
-      var ratio = imgData.width / imgData.height;
-      var iW, iH;
-      if (ratio >= 1) {
-        // Landscape or square
-        iW = Math.min(maxW, 120);
-        iH = iW / ratio;
-        if (iH > maxH) { iH = maxH; iW = iH * ratio; }
-      } else {
-        // Portrait
-        iH = Math.min(maxH, 80);
-        iW = iH * ratio;
-        if (iW > maxW) { iW = maxW; iH = iW / ratio; }
-      }
-      // Center image on page
-      var xPos = mg + (cw - iW) / 2;
-      chk();
-      if (y + iH > 275) { doc.addPage(); y = mg; }
-      doc.addImage(b64, 'JPEG', xPos, y, iW, iH);
-      doc.setFontSize(8); doc.setTextColor(100, 120, 150);
-      if (lbl) doc.text(lbl, mg, y + iH + 4);
-      y += iH + 8;
-    } catch(e) { console.warn('Image error:', e); }
-  }
+  // Header
+  doc.setFillColor(13, 20, 32); doc.rect(0, 0, W, 26, 'F');
+  doc.setFillColor(224, 92, 0); doc.rect(0, 26, W, 3, 'F');
+  doc.setTextColor(255, 255, 255); doc.setFontSize(15); doc.setFont('helvetica', 'bold');
+  doc.text('PI Telfs - Verkehrsunfall Sachschaden', mg, 11);
+  doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.setTextColor(180, 195, 220);
+  doc.text('LPD Tirol - Innsbruck-Land  |  App v' + APP_VER + '  |  Erstellt: ' + new Date().toLocaleString('de-AT'), mg, 19);
+  y = 36;
 
   FZ.forEach(function(fz) { saveFZ(fz.id); });
-  LE.forEach(function(l) { saveL(l.id); });
+  PERS.forEach(function(p) { savePers(p.id); });
   var o = collectOrt();
 
-  sec('1. UNFALLORT UND VERHAELTNISSE');
-  row('Datum:', o.datum); row('Uhrzeit:', o.uhrzeit); row('Strasse:', o.strasse);
-  row('Gemeinde:', o.gem); row('Richtung / KM:', o.richtung);
+  function chk(need) {
+    if (y + (need || 10) > 275) { doc.addPage(); y = mg; drawPageHeader(); }
+  }
+  function drawPageHeader() {
+    doc.setFillColor(240, 244, 248); doc.rect(0, 0, W, 8, 'F');
+    doc.setFontSize(7); doc.setFont('helvetica', 'normal'); doc.setTextColor(120, 135, 155);
+    doc.text('PI Telfs - Unfallprotokoll  |  ' + (o.datum || '') + '  |  ' + (o.strasse || ''), mg, 5.5);
+  }
+  function sec(t, color) {
+    chk(12);
+    var r = color || [240, 244, 248];
+    doc.setFillColor(r[0], r[1], r[2]); doc.rect(mg, y, cw, 8, 'F');
+    doc.setFillColor(224, 92, 0); doc.rect(mg, y, 3, 8, 'F');
+    doc.setTextColor(13, 20, 32); doc.setFontSize(9); doc.setFont('helvetica', 'bold');
+    doc.text(t, mg + 6, y + 5.5); y += 11;
+  }
+  function row(lbl, val, highlight) {
+    chk(7);
+    doc.setFontSize(8); doc.setFont('helvetica', 'bold');
+    doc.setTextColor(highlight ? 192 : 100, highlight ? 57 : 120, highlight ? 43 : 150);
+    doc.text(lbl, mg, y);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(highlight ? 192 : 13, highlight ? 57 : 20, highlight ? 43 : 32);
+    var ls = doc.splitTextToSize(val || '-', cw - 52);
+    doc.text(ls, mg + 52, y); y += 5 * ls.length + 1;
+  }
+  function addImg(b64, lbl, maxW) {
+    if (!b64) return;
+    try {
+      var imgData = doc.getImageProperties(b64);
+      var iMaxW = maxW || (cw * 0.75);
+      var iMaxH = 80;
+      var ratio = imgData.width / imgData.height;
+      var iW, iH;
+      if (ratio >= 1) { iW = Math.min(iMaxW, cw); iH = iW / ratio; if (iH > iMaxH) { iH = iMaxH; iW = iH * ratio; } }
+      else { iH = Math.min(iMaxH, 60); iW = iH * ratio; if (iW > iMaxW) { iW = iMaxW; iH = iW / ratio; } }
+      chk(iH + 12);
+      var xPos = mg + (cw - iW) / 2;
+      doc.addImage(b64, 'JPEG', xPos, y, iW, iH);
+      if (lbl) { doc.setFontSize(7); doc.setTextColor(120, 135, 155); doc.text(lbl, xPos, y + iH + 3.5); }
+      y += iH + 8;
+    } catch(e) {}
+  }
+  function multiLine(lbl, val) {
+    if (!val || !val.trim()) return;
+    chk(8);
+    doc.setFontSize(8); doc.setFont('helvetica', 'bold'); doc.setTextColor(100, 120, 150);
+    doc.text(lbl, mg, y); y += 5;
+    doc.setFont('helvetica', 'normal'); doc.setTextColor(13, 20, 32);
+    var ls = doc.splitTextToSize(val, cw);
+    chk(ls.length * 4.5 + 4);
+    doc.text(ls, mg, y); y += ls.length * 4.5 + 4;
+  }
+  function divider() { chk(4); doc.setDrawColor(220, 228, 240); doc.line(mg, y, W - mg, y); y += 4; }
+
+  // Section 1: Unfallort
+  sec('1.  UNFALLORT & VERHÄLTNISSE');
+  row('Datum:', o.datum); row('Uhrzeit:', o.uhrzeit);
+  row('Strasse:', o.strasse); row('Gemeinde:', o.gem + (o.bezirk ? '  |  Bezirk: ' + o.bezirk : ''));
+  row('Richtung / KM:', o.richtung);
   if (o.lat && o.lon) {
-    row('GPS-Koordinaten:', o.lat + ', ' + o.lon + ' (WGS84)');
+    row('GPS (WGS84):', o.lat + ', ' + o.lon);
     row('Google Maps:', 'maps.google.com/?q=' + o.lat + ',' + o.lon);
   }
+  divider();
+  row('Strassentyp:', o.strassentyp); row('Hoechstgeschwindigkeit:', o.vmax);
   row('Wetter:', o.wetter); row('Strassenzustand:', o.strverh); row('Licht:', o.licht);
-  row('Hoechstgeschwindigkeit:', o.vmax); row('Fahrtrichtung Fzg.1:', o.fahr);
-  if (o.hergang) {
-    chk();
-    doc.setFontSize(9); doc.setFont('helvetica', 'bold'); doc.setTextColor(100, 120, 150);
-    doc.text('Hergang:', mg, y); y += 5;
-    doc.setFont('helvetica', 'normal'); doc.setTextColor(13, 20, 32);
-    var lh = doc.splitTextToSize(o.hergang, cw);
-    doc.text(lh, mg, y); y += lh.length * 5 + 2;
+  if (o.verletzte !== 'Keine Verletzten') {
+    divider();
+    row('VERLETZTE:', o.verletzte, true);
+    var ret = [];
+    if (o.ret_rettung) ret.push('Rettung'); if (o.ret_feuerwehr) ret.push('Feuerwehr');
+    if (o.ret_notarzt) ret.push('Notarzt'); if (o.ret_heli) ret.push('Hubschrauber');
+    if (ret.length) row('Alarmiert:', ret.join(', '));
   }
-  if (o.mass) {
-    chk();
-    doc.setFontSize(9); doc.setFont('helvetica', 'bold'); doc.setTextColor(100, 120, 150);
-    doc.text('Massnahmen:', mg, y); y += 5;
-    doc.setFont('helvetica', 'normal'); doc.setTextColor(13, 20, 32);
-    var lm = doc.splitTextToSize(o.mass, cw);
-    doc.text(lm, mg, y); y += lm.length * 5 + 4;
-  }
+  multiLine('Hergang:', o.hergang);
+  multiLine('Massnahmen:', o.mass);
 
-  for (var fi = 0; fi < FZ.length; fi++) {
-    var fz = FZ[fi];
-    sec('2.' + (fi+1) + ' FAHRZEUG ' + (fi+1));
-    row('Typ:', fz.typ); row('Kennzeichen:', fz.kz); row('Farbe:', fz.farbe);
-    row('Marke / Modell:', [fz.marke, fz.modell].filter(Boolean).join(' '));
-    if (fz.schaden) {
-      chk();
-      doc.setFontSize(9); doc.setFont('helvetica', 'bold'); doc.setTextColor(100, 120, 150);
-      doc.text('Schaden:', mg, y); y += 5;
-      doc.setFont('helvetica', 'normal'); doc.setTextColor(13, 20, 32);
-      var ls2 = doc.splitTextToSize(fz.schaden, cw);
-      doc.text(ls2, mg, y); y += ls2.length * 5 + 2;
+  // Section 2: Fahrzeuge
+  FZ.forEach(function(fz, i) {
+    var fp = FZP[fz.id] || { fotos: [], zul: null };
+    sec('2.' + (i+1) + '  FAHRZEUG ' + (i+1) + (fz.kz ? '  -  ' + fz.kz : ''));
+    row('Typ:', fz.typ);
+    row('Kennzeichen:', fz.kz);
+    row('Fahrzeug:', [fz.farbe, fz.marke, fz.modell].filter(Boolean).join('  '));
+    multiLine('Schaden:', fz.schaden);
+    fp.fotos.forEach(function(src, pi) { addImg(src, 'Fahrzeug ' + (i+1) + ' - Foto ' + (pi+1)); });
+    if (fp.zul) addImg(fp.zul, 'Zulassungsschein Fahrzeug ' + (i+1));
+  });
+
+  // Section 3: Personen
+  PERS.forEach(function(p, i) {
+    var pp = PERSP[p.id] || {};
+    var fzIdx = FZ.findIndex(function(f) { return String(f.id) === String(p.fzId); });
+    var isVerl = p.verletzung && p.verletzung !== 'Unverletzt';
+    sec('3.' + (i+1) + '  PERSON ' + (i+1) + '  -  ' + p.rolle.toUpperCase(), isVerl ? [255, 240, 238] : null);
+    row('Name:', p.name);
+    row('Geburtsdatum:', p.geb);
+    row('Adresse:', p.adr);
+    row('Telefon:', p.tel);
+    if (fzIdx >= 0) row('Fahrzeug:', 'Fahrzeug ' + (fzIdx+1) + (FZ[fzIdx].kz ? ' (' + FZ[fzIdx].kz + ')' : ''));
+    row('FS-Klasse:', p.fskl);
+    row('Versicherung:', p.vers);
+    if (isVerl) {
+      row('VERLETZUNGSGRAD:', p.verletzung, true);
+      multiLine('Verletzungsbeschreibung:', p.verldetail);
     }
-    var fps = FZP[fz.id] || [];
-    for (var fpi = 0; fpi < fps.length; fpi++) {
-      addImg(fps[fpi], 'Fahrzeug ' + (fi+1) + ' - Foto ' + (fpi+1));
-    }
-  }
+    if (pp.fs) addImg(pp.fs, 'Fuehrerschein Person ' + (i+1));
+  });
 
-  for (var li = 0; li < LE.length; li++) {
-    var l = LE[li];
-    sec('3.' + (li+1) + ' LENKER ' + (li+1));
-    row('Name:', l.name); row('Geburtsdatum:', l.geb); row('Adresse:', l.adr);
-    row('Telefon:', l.tel); row('FS-Klasse:', l.fskl); row('FS ausgestellt:', l.fsdat);
-    row('Versicherung:', l.vers);
-    var lpe = LEP[l.id] || {};
-    if (lpe.fs) addImg(lpe.fs, 'Fuehrerschein Lenker ' + (li+1));
-    if (lpe.zul) addImg(lpe.zul, 'Zulassungsschein Lenker ' + (li+1));
-  }
-
+  // Section 4: Fotos
   var epList = EP.filter(function(p) { return p.src; });
   if (epList.length) {
-    sec('4. UNFALLFOTOS');
-    for (var epi = 0; epi < epList.length; epi++) {
-      addImg(epList[epi].src, 'Unfallstelle - Foto ' + (epi+1));
-    }
+    sec('4.  UNFALLSTELLENFOTOS (' + epList.length + ')');
+    epList.forEach(function(p, i) { addImg(p.src, 'Unfallstelle - Foto ' + (i+1)); });
   }
 
+  // Footer
   var pages = doc.getNumberOfPages();
   for (var pg = 1; pg <= pages; pg++) {
     doc.setPage(pg);
-    doc.setFontSize(8); doc.setTextColor(150, 160, 180);
-    doc.text('PI Telfs - Unfallprotokoll - Seite ' + pg + '/' + pages, mg, 290);
-    doc.text(new Date().toLocaleDateString('de-AT'), W - mg, 290, { align: 'right' });
+    doc.setFillColor(240, 244, 248); doc.rect(0, 287, W, 10, 'F');
+    doc.setFillColor(224, 92, 0); doc.rect(0, 287, W, 1, 'F');
+    doc.setFontSize(7); doc.setTextColor(120, 135, 155); doc.setFont('helvetica', 'normal');
+    doc.text('PI Telfs  |  LPD Tirol  |  Seite ' + pg + '/' + pages, mg, 293);
+    doc.text(new Date().toLocaleString('de-AT'), W - mg, 293, { align: 'right' });
   }
   return doc;
 }
 
+// ──────────────────────────────────────────────────────
+// ZIP EXPORT
+// ──────────────────────────────────────────────────────
 function getAllPhotos(prefix) {
   var list = [];
-  for (var fi = 0; fi < FZ.length; fi++) {
-    var fps = FZP[FZ[fi].id] || [];
-    for (var fpi = 0; fpi < fps.length; fpi++) {
-      list.push({ src: fps[fpi], name: prefix + '_Fzg' + (fi+1) + '_Foto' + (fpi+1) + '.jpg' });
-    }
-  }
-  for (var li = 0; li < LE.length; li++) {
-    var lpe = LEP[LE[li].id] || {};
-    if (lpe.fs) list.push({ src: lpe.fs, name: prefix + '_Lenker' + (li+1) + '_Fuehrerschein.jpg' });
-    if (lpe.zul) list.push({ src: lpe.zul, name: prefix + '_Lenker' + (li+1) + '_Zulassung.jpg' });
-  }
-  var epList = EP.filter(function(p) { return p.src; });
-  for (var ei = 0; ei < epList.length; ei++) {
-    list.push({ src: epList[ei].src, name: prefix + '_Unfall_Foto' + (ei+1) + '.jpg' });
-  }
+  FZ.forEach(function(fz, fi) {
+    ((FZP[fz.id] || {}).fotos || []).forEach(function(src, pi) {
+      list.push({ src: src, name: prefix + '_Fzg' + (fi+1) + '_Foto' + (pi+1) + '.jpg' });
+    });
+    if (FZP[fz.id] && FZP[fz.id].zul) list.push({ src: FZP[fz.id].zul, name: prefix + '_Fzg' + (fi+1) + '_Zulassung.jpg' });
+  });
+  PERS.forEach(function(p, pi) {
+    if (PERSP[p.id] && PERSP[p.id].fs) list.push({ src: PERSP[p.id].fs, name: prefix + '_Person' + (pi+1) + '_Fuehrerschein.jpg' });
+  });
+  EP.filter(function(p) { return p.src; }).forEach(function(p, i) {
+    list.push({ src: p.src, name: prefix + '_Unfall_Foto' + (i+1) + '.jpg' });
+  });
   return list;
 }
 
-async function doExport(openMail) {
+async function doExport() {
   toast('ZIP wird erstellt...');
   try {
     FZ.forEach(function(fz) { saveFZ(fz.id); });
-    LE.forEach(function(l) { saveL(l.id); });
+    PERS.forEach(function(p) { savePers(p.id); });
     var o = collectOrt();
-    var prefix = ('Unfall_' + (o.datum || lDate()) + '_' + (o.strasse || 'PI-Telfs')).replace(/[^a-zA-Z0-9_-]/g, '_');
-
-    // Build PDF as blob
+    var prefix = ('Unfall_' + (o.datum || lDate()) + '_' + (o.gem || o.strasse || 'PI-Telfs')).replace(/[^a-zA-Z0-9_-]/g, '_');
     var doc = buildPDF();
     var pdfBlob = doc.output('blob');
-
-    // Build ZIP
     var zip = new JSZip();
     var folder = zip.folder(prefix);
     folder.file(prefix + '.pdf', pdfBlob);
-
-    // Add all photos
     var photos = getAllPhotos(prefix);
-    for (var i = 0; i < photos.length; i++) {
-      var b64data = photos[i].src.split(',')[1];
-      folder.file(photos[i].name, b64data, { base64: true });
-    }
-
-    // Generate and download ZIP
-    toast('ZIP wird komprimiert...');
+    photos.forEach(function(ph) {
+      folder.file(ph.name, ph.src.split(',')[1], { base64: true });
+    });
+    toast('Komprimiere...');
     var zipBlob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } });
     var sizeMB = (zipBlob.size / 1024 / 1024).toFixed(1);
     var url = URL.createObjectURL(zipBlob);
     var a = document.createElement('a');
-    a.href = url;
-    a.download = prefix + '.zip';
-    a.style.display = 'none';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    a.href = url; a.download = prefix + '.zip'; a.style.display = 'none';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
     setTimeout(function() { URL.revokeObjectURL(url); }, 10000);
-    toast('ZIP (' + sizeMB + ' MB) wird gespeichert...');
-
-    if (openMail) {
-      var mail = gv('f-mail');
-      if (mail && mail.indexOf('@') > 0) {
-        setTimeout(function() {
-          var subj = encodeURIComponent('Unfallprotokoll Sachschaden ' + o.datum + ' ' + o.strasse);
-          var bodyTxt = 'Sehr geehrte Kolleginnen und Kollegen,\n\nDas Unfallprotokoll vom ' + o.datum + ' um ' + o.uhrzeit + ' Uhr ist als ZIP im Downloads-Ordner gespeichert.\n\nUnfallort: ' + o.strasse + ', ' + o.gem + '\n' + (o.lat ? 'GPS: maps.google.com/?q=' + o.lat + ',' + o.lon + '\n' : '') + '\nDatei: ' + prefix + '.zip (PDF + ' + photos.length + ' Fotos)\n\nMit freundlichen Gruessen\nPI Telfs';
-          window.location.href = 'mailto:' + mail + '?subject=' + subj + '&body=' + encodeURIComponent(bodyTxt);
-        }, 1000);
-      } else {
-        alert('Bitte E-Mail-Adresse eintragen.');
-      }
-    }
+    toast('ZIP (' + sizeMB + ' MB) gespeichert!');
   } catch(e) {
-    console.error(e);
-    alert('Fehler beim ZIP-Export: ' + e.message);
+    console.error(e); alert('ZIP-Fehler: ' + e.message);
   }
 }
 
-// ---- CRYPTSHARE UPLOAD ----
+// ──────────────────────────────────────────────────────
+// CRYPTSHARE
+// ──────────────────────────────────────────────────────
 var CS_URL = 'https://cryptshare.bmi.gv.at';
-var CS_HEADERS = { 'X-CS-MajorApiVersion': '1', 'X-CS-MinorApiVersion': '15', 'Content-Type': 'application/json' };
-var csVerToken = null;
-var csTrackingId = null;
-var csResultLink = null;
+var CS_H = { 'X-CS-MajorApiVersion': '1', 'X-CS-MinorApiVersion': '15', 'Content-Type': 'application/json' };
+var csTrackingId = null, csLink = '';
 
 function csReset() {
-  csVerToken = null; csTrackingId = null; csResultLink = null;
-  ['cs-step1','cs-step2','cs-step3','cs-step4','cs-cors-err'].forEach(function(id) {
-    var el = document.getElementById(id);
-    if (el) el.style.display = (id === 'cs-step1') ? 'block' : 'none';
-  });
-  sv('cs-otp', '');
+  csTrackingId = null; csLink = '';
+  ['cs-step1','cs-step3','cs-step4','cs-cors-err'].forEach(function(id) { document.getElementById(id).style.display = id==='cs-step1'?'block':'none'; });
+  document.getElementById('cs-step2').style.display = 'none';
+  document.getElementById('cs-prog').style.width = '0%';
 }
-
-function csSetProgress(pct, statusTxt, detailTxt, iconTxt) {
-  if (iconTxt) document.getElementById('cs-icon').textContent = iconTxt;
-  if (statusTxt) document.getElementById('cs-status').textContent = statusTxt;
-  if (detailTxt !== undefined) document.getElementById('cs-detail').textContent = detailTxt;
-  document.getElementById('cs-progress-fill').style.width = pct + '%';
+function csProg(pct, s, d, ico) {
+  document.getElementById('cs-step3').style.display = 'block';
+  document.getElementById('cs-status').textContent = s || '';
+  document.getElementById('cs-detail').textContent = d || '';
+  document.getElementById('cs-icon').textContent = ico || '\u23F3';
+  document.getElementById('cs-prog').style.width = pct + '%';
 }
-
 async function csAPI(method, path, body) {
-  var opts = { method: method, headers: Object.assign({}, CS_HEADERS) };
-  if (body !== undefined) opts.body = JSON.stringify(body);
-  var resp = await fetch(CS_URL + path, opts);
-  if (!resp.ok) {
-    var err = await resp.json().catch(function() { return {}; });
-    throw new Error('API Fehler ' + resp.status + ': ' + (err.errorMessage || JSON.stringify(err)));
-  }
-  var ct = resp.headers.get('content-type') || '';
-  if (ct.indexOf('application/json') >= 0) return resp.json();
-  return resp;
+  var opts = { method: method, headers: CS_H };
+  if (body) opts.body = JSON.stringify(body);
+  var r = await fetch(CS_URL + path, opts);
+  if (!r.ok) throw new Error('API ' + r.status + ' ' + path);
+  var ct2 = r.headers.get('content-type') || '';
+  return ct2.includes('application/json') ? r.json() : r.text();
 }
 
 async function csRequestOTP() {
   var sender = gv('cs-sender').trim();
-  if (!sender || sender.indexOf('@') < 0) { alert('Bitte Absender-Dienstmail eintragen!'); return; }
+  if (!sender || sender.indexOf('@') < 0) { alert('Bitte Absender-Mailadresse eintragen.'); return; }
+  document.getElementById('cs-step1').style.display = 'none';
+  document.getElementById('cs-cors-err').style.display = 'none';
+  csProg(10, 'OTP wird angefordert...', '', '\uD83D\uDCE7');
+  document.getElementById('cs-step3').style.display = 'block';
   try {
-    // Check if already verified (cookie-based)
-    await csAPI('GET', '/api/users/' + encodeURIComponent(sender) + '/verification');
-    // Already verified - skip OTP
-    csVerToken = 'pre-verified';
-    document.getElementById('cs-step1').style.display = 'none';
-    document.getElementById('cs-step2').style.display = 'none';
-    csVerifyAndUpload();
-    return;
-  } catch(e) { /* not yet verified, continue */ }
-
-  try {
-    await csAPI('POST', '/api/users/' + encodeURIComponent(sender) + '/verification', {});
-    document.getElementById('cs-step1').style.display = 'none';
-    document.getElementById('cs-step2').style.display = 'block';
-    toast('OTP wurde an ' + sender + ' gesendet');
-  } catch(e) {
-    console.error('OTP request error:', e);
-    if (e.message.indexOf('Failed to fetch') >= 0 || e.message.indexOf('NetworkError') >= 0) {
-      document.getElementById('cs-cors-err').style.display = 'block';
-    } else {
-      alert('Fehler beim OTP-Anfordern: ' + e.message);
+    var vr = await csAPI('GET', '/api/users/' + encodeURIComponent(sender) + '/verification');
+    if (vr && vr.senderVerificationRequired === false) {
+      await csVerifyAndUpload(); return;
     }
+    await csAPI('POST', '/api/users/' + encodeURIComponent(sender) + '/verification/otp', {});
+    document.getElementById('cs-step3').style.display = 'none';
+    document.getElementById('cs-step2').style.display = 'block';
+  } catch(e) {
+    document.getElementById('cs-step3').style.display = 'none';
+    if (e.message.includes('Failed to fetch') || e.message.includes('NetworkError')) {
+      document.getElementById('cs-cors-err').style.display = 'block';
+      document.getElementById('cs-step1').style.display = 'block';
+    } else { alert('Fehler: ' + e.message); document.getElementById('cs-step1').style.display = 'block'; }
   }
 }
 
 async function csVerifyAndUpload() {
-  var sender = gv('cs-sender').trim();
+  var sender    = gv('cs-sender').trim();
   var recipient = gv('cs-recipient').trim();
-  var otp = gv('cs-otp').trim();
-
-  if (!recipient || recipient.indexOf('@') < 0) { alert('Bitte Empfaenger-Mail eintragen!'); return; }
-
+  var otp       = gv('cs-otp').trim();
+  if (!recipient || recipient.indexOf('@') < 0) { alert('Bitte Empfaenger-Mail eintragen.'); return; }
   document.getElementById('cs-step2').style.display = 'none';
-  document.getElementById('cs-step3').style.display = 'block';
-  csSetProgress(5, 'Verifizierung...', '', 'ὑ2');
-
   try {
-    // Verify OTP (skip if pre-verified)
-    if (csVerToken !== 'pre-verified' && otp) {
-      await csAPI('POST', '/api/users/' + encodeURIComponent(sender) + '/verification/' + encodeURIComponent(otp), {});
+    // Verify
+    if (otp) {
+      csProg(15, 'OTP wird geprueft...', '', '\uD83D\uDD10');
+      await csAPI('POST', '/api/users/' + encodeURIComponent(sender) + '/verification', { verificationCode: otp });
     }
-    csSetProgress(10, 'PDF wird erstellt...', '', 'Ὄ4');
-
-    // Build PDF
-    FZ.forEach(function(fz) { saveFZ(fz.id); });
-    LE.forEach(function(l) { saveL(l.id); });
+    // Create session
+    csProg(25, 'Session wird erstellt...', '', '\uD83D\uDCC1');
+    FZ.forEach(function(fz) { saveFZ(fz.id); }); PERS.forEach(function(p) { savePers(p.id); });
     var o = collectOrt();
-    var prefix = ('Unfall_' + (o.datum || lDate()) + '_' + (o.strasse || 'PI-Telfs')).replace(/[^a-zA-Z0-9_-]/g, '_');
-    var doc = buildPDF();
-    var pdfBlob = doc.output('blob');
-    csSetProgress(20, 'ZIP wird erstellt...', '', '὎6');
-
+    var prefix = ('Unfall_' + (o.datum || lDate()) + '_' + (o.gem || 'PI-Telfs')).replace(/[^a-zA-Z0-9_-]/g, '_');
+    var sessionR = await csAPI('POST', '/api/users/' + encodeURIComponent(sender) + '/transfer-sessions', {
+      transferSettings: { expirationDate: new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0], numberOfDownloads: 5, password: '', notificationOnDownload: true },
+      recipients: [{ email: recipient }],
+      senderLanguage: 'de'
+    });
+    var trackId = sessionR.trackingId;
     // Build ZIP
-    var zip = new JSZip();
-    var folder = zip.folder(prefix);
+    csProg(40, 'ZIP wird erstellt...', prefix + '.zip', '\uD83D\uDCE6');
+    var doc = buildPDF(); var pdfBlob = doc.output('blob');
+    var zip = new JSZip(); var folder = zip.folder(prefix);
     folder.file(prefix + '.pdf', pdfBlob);
-    var photos = getAllPhotos(prefix);
-    for (var i = 0; i < photos.length; i++) {
-      folder.file(photos[i].name, photos[i].src.split(',')[1], { base64: true });
-    }
-    var zipBlob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE',
-      onUpdate: function(meta) {
-        csSetProgress(20 + meta.percent * 0.15, 'ZIP wird komprimiert...', Math.round(meta.percent) + '%');
-      }
-    });
+    getAllPhotos(prefix).forEach(function(ph) { folder.file(ph.name, ph.src.split(',')[1], { base64: true }); });
+    var zipBlob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } });
     var sizeMB = (zipBlob.size / 1024 / 1024).toFixed(1);
-    csSetProgress(35, 'Transfer wird erstellt...', 'ZIP: ' + sizeMB + ' MB', '☁️');
-
-    // Create transfer session
-    var expiry = new Date();
-    expiry.setDate(expiry.getDate() + 30);
-    var session = await csAPI('POST', '/api/users/' + encodeURIComponent(sender) + '/transfer-sessions', {
-      transferSettings: {
-        expirationDate: expiry.toISOString().split('T')[0],
-        subject: 'Unfallprotokoll Sachschaden ' + o.datum + ' ' + (o.strasse || ''),
-        notificationMessage: 'Bitte das Unfallprotokoll herunterladen.',
-        recipients: [{ emailAddress: recipient }],
-        sendEmail: true
-      }
-    });
-    csTrackingId = session.trackingId || (session.data && session.data.trackingId);
-    csSetProgress(45, 'Datei wird registriert...', '');
-
     // Register file
-    var fileReg = await csAPI('POST', '/api/users/' + encodeURIComponent(sender) + '/transfer-sessions/' + csTrackingId + '/files', {
-      fileName: prefix + '.zip',
-      fileSize: zipBlob.size,
-      checksum: ''
-    });
-    var fileId = fileReg.fileId || (fileReg.data && fileReg.data.fileId);
-    csSetProgress(55, 'Wird hochgeladen...', sizeMB + ' MB');
-
-    // Upload file content
-    var uploadHeaders = { 'X-CS-MajorApiVersion': '1', 'X-CS-MinorApiVersion': '15', 'Content-Type': 'application/octet-stream' };
-    var uploadResp = await fetch(CS_URL + '/api/users/' + encodeURIComponent(sender) + '/transfer-sessions/' + csTrackingId + '/files/' + fileId + '/content', {
-      method: 'PUT', headers: uploadHeaders, body: zipBlob
-    });
-    if (!uploadResp.ok) throw new Error('Upload fehlgeschlagen: ' + uploadResp.status);
-    csSetProgress(85, 'Transfer wird abgeschlossen...', '');
-
-    // Finalize transfer
-    var final = await csAPI('POST', '/api/users/' + encodeURIComponent(sender) + '/transfer-sessions/' + csTrackingId + '/completion', {});
-    var link = (final.data && final.data.downloadUrl) || (final.downloadUrl) || (CS_URL + '/s/' + csTrackingId);
-    csResultLink = link;
-
-    csSetProgress(100, 'Erfolgreich hochgeladen!', '', '✅');
-    setTimeout(function() {
-      document.getElementById('cs-step3').style.display = 'none';
-      document.getElementById('cs-step4').style.display = 'block';
-      document.getElementById('cs-result-link').textContent = link;
-      toast('Cryptshare Upload erfolgreich!');
-    }, 800);
-
-  } catch(e) {
-    console.error('Cryptshare error:', e);
+    csProg(55, 'Datei wird registriert...', sizeMB + ' MB', '\uD83D\uDCDD');
+    var fileR = await csAPI('POST', '/api/users/' + encodeURIComponent(sender) + '/transfer-sessions/' + trackId + '/files', { fileName: prefix + '.zip', fileSize: zipBlob.size });
+    var fileId = fileR.fileId;
+    // Upload
+    csProg(70, 'Wird hochgeladen...', sizeMB + ' MB', '\u2601\uFE0F');
+    var upH = { 'X-CS-MajorApiVersion': '1', 'X-CS-MinorApiVersion': '15', 'Content-Type': 'application/octet-stream' };
+    var upR = await fetch(CS_URL + '/api/users/' + encodeURIComponent(sender) + '/transfer-sessions/' + trackId + '/files/' + fileId + '/content', { method: 'PUT', headers: upH, body: zipBlob });
+    if (!upR.ok) throw new Error('Upload fehlgeschlagen: ' + upR.status);
+    // Complete
+    csProg(90, 'Transfer wird abgeschlossen...', '', '\uD83D\uDD04');
+    await csAPI('POST', '/api/users/' + encodeURIComponent(sender) + '/transfer-sessions/' + trackId + '/completion', {});
+    // Result
+    csProg(100, 'Fertig!', '', '\u2705');
+    csLink = CS_URL + '/transfer/' + trackId;
+    document.getElementById('cs-result-link').textContent = csLink;
     document.getElementById('cs-step3').style.display = 'none';
-    if (e.message.indexOf('Failed to fetch') >= 0 || e.message.indexOf('NetworkError') >= 0) {
+    document.getElementById('cs-step4').style.display = 'block';
+    toast('Cryptshare Upload erfolgreich!');
+  } catch(e) {
+    document.getElementById('cs-step3').style.display = 'none';
+    if (e.message.includes('Failed to fetch') || e.message.includes('NetworkError')) {
       document.getElementById('cs-cors-err').style.display = 'block';
       document.getElementById('cs-step1').style.display = 'block';
-    } else {
-      alert('Fehler beim Cryptshare Upload:\n' + e.message + '\n\nBitte lokal speichern.');
-      csReset();
-    }
+    } else { alert('Upload-Fehler: ' + e.message); document.getElementById('cs-step1').style.display = 'block'; }
   }
 }
-
 function csCopyLink() {
-  if (!csResultLink) return;
-  navigator.clipboard.writeText(csResultLink)
-    .then(function() { toast('Link kopiert!'); })
-    .catch(function() { document.execCommand('copy'); toast('Link kopiert!'); });
+  navigator.clipboard.writeText(csLink).then(function() { toast('Link kopiert!'); }).catch(function() {
+    var el = document.getElementById('cs-result-link'); el.select && el.select(); document.execCommand('copy'); toast('Link kopiert!');
+  });
 }
-
 function csMailLink() {
-  if (!csResultLink) return;
   var o = collectOrt();
-  var subj = encodeURIComponent('Unfallprotokoll Sachschaden ' + o.datum + ' ' + o.strasse);
-  var bodyTxt = 'Sehr geehrte Kolleginnen und Kollegen,\n\n'
-    + 'das Unfallprotokoll (Sachschaden) vom ' + o.datum + ' um ' + o.uhrzeit + ' Uhr steht zum Download bereit.\n\n'
-    + 'Unfallort: ' + o.strasse + ', ' + o.gem + '\n'
-    + (o.lat ? 'GPS: maps.google.com/?q=' + o.lat + ',' + o.lon + '\n' : '')
-    + '\nDownload-Link (Cryptshare - verschluesselt, 30 Tage gueltig):\n' + csResultLink
-    + '\n\nMit freundlichen Gruessen\nPI Telfs';
-  var mail = gv('cs-recipient') || gv('f-mail') || '';
-  window.location.href = 'mailto:' + mail + '?subject=' + subj + '&body=' + encodeURIComponent(bodyTxt);
+  var mail = gv('cs-recipient') || '';
+  var subj = encodeURIComponent('Unfallprotokoll ' + o.datum + ' ' + o.strasse);
+  var body = encodeURIComponent('Download-Link:\n' + csLink + '\n\nUnfallort: ' + o.strasse + ', ' + o.gem + '\nDatum: ' + o.datum + ' ' + o.uhrzeit + (o.lat ? '\nGPS: maps.google.com/?q=' + o.lat + ',' + o.lon : '') + '\n\nPI Telfs');
+  window.location.href = 'mailto:' + mail + '?subject=' + subj + '&body=' + body;
 }
 
-// ---- HELP ----
-function showHelp() {
-  document.getElementById('help-modal').style.display = 'block';
-  document.body.style.overflow = 'hidden';
-}
-function hideHelp() {
-  document.getElementById('help-modal').style.display = 'none';
-  document.body.style.overflow = '';
+// ──────────────────────────────────────────────────────
+// STATE RESET
+// ──────────────────────────────────────────────────────
+function resetState() {
+  ct = 0; FZ = []; PERS = []; EP = []; FZP = {}; PERSP = {};
+  fzc = 1; pc = 1; epc = 0;
 }
 
-// ---- MISC ----
+// ──────────────────────────────────────────────────────
+// TOAST
+// ──────────────────────────────────────────────────────
 function toast(msg) {
   var t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('on');
-  clearTimeout(t._t);
-  t._t = setTimeout(function() { t.classList.remove('on'); }, 3000);
+  clearTimeout(t._t); t._t = setTimeout(function() { t.classList.remove('on'); }, 3000);
 }
 
-function resetState() {
-  ct = 0; FZ = []; LE = []; EP = []; FZP = {}; LEP = {};
-  fzc = 1; lc = 1; epc = 0;
-}
-
-function resetApp() {
-  if (!confirm('Aktuelle Aufnahme verwerfen und neu beginnen?')) return;
-  resetState(); startApp();
-}
-
+// ──────────────────────────────────────────────────────
+// BOOT
+// ──────────────────────────────────────────────────────
 window.addEventListener('load', function() {
-  if (localStorage.getItem('unfall-d')) {
-    document.getElementById('load-btn').textContent = 'Entwurf laden (vorhanden)';
-  }
-  ensureOCRDiv();
+  initDataLists();
+  loadProjectList();
+  document.getElementById('f-verletzte') && document.getElementById('f-verletzte').addEventListener('change', updateRettung);
 });
 </script>
 </body>
