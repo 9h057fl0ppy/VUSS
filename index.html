@@ -344,6 +344,122 @@ input.hi { border-color:var(--blu) !important; background:var(--blu-bg) !importa
 
 <div id="toast"></div>
 
+<!-- HELP MODAL -->
+<div id="help-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;overflow-y:auto">
+  <div style="background:var(--surf);min-height:100dvh;padding:0 0 40px">
+    <div style="background:linear-gradient(135deg,#0d1420,#1a2a40);padding:20px 16px;display:flex;align-items:center;gap:12px">
+      <div style="font-size:28px">&#x1F4D6;</div>
+      <div>
+        <div style="color:#fff;font-size:18px;font-weight:800">Bedienungsanleitung</div>
+        <div style="color:rgba(255,255,255,.5);font-size:12px">Unfallaufnahme App &middot; v2.1 &middot; PI Telfs</div>
+      </div>
+      <button onclick="hideHelp()" style="margin-left:auto;background:rgba(255,255,255,.1);border:none;color:#fff;border-radius:8px;padding:8px 14px;font-size:14px;font-weight:700;cursor:pointer">&#x2715; Schliessen</button>
+    </div>
+    <div style="padding:16px">
+
+      <!-- OVERVIEW -->
+      <div style="background:var(--acc-bg);border:1.5px solid var(--acc-b);border-radius:10px;padding:14px;margin-bottom:16px">
+        <div style="font-weight:800;font-size:15px;color:var(--acc);margin-bottom:6px">Uebersicht</div>
+        <div style="font-size:14px;line-height:1.7;color:var(--tx2)">Die App fuehrt durch die strukturierte Aufnahme eines Verkehrsunfalls mit Sachschaden in 5 Schritten. Alle Daten werden lokal auf dem Geraet gespeichert und koennen als ZIP-Datei exportiert werden.</div>
+      </div>
+
+      <!-- STEP 1 -->
+      <div style="background:var(--surf);border:1.5px solid var(--bdr);border-radius:10px;padding:14px;margin-bottom:10px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+          <div style="width:32px;height:32px;background:var(--acc);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:14px;flex-shrink:0">1</div>
+          <div style="font-weight:800;font-size:15px">Unfallort</div>
+        </div>
+        <div style="font-size:13px;line-height:1.8;color:var(--tx2)">
+          &#x1F4CD; <b>GPS-Taste</b> antippen &rarr; Strasse und Gemeinde werden automatisch eingetragen<br>
+          &#x1F5FA;&#xFE0F; GPS-Koordinaten erscheinen mit direktem <b>Google Maps Link</b><br>
+          &#x26A1; Wetter, Strassenzustand und Lichtverhaeltnisse auswaehlen<br>
+          &#x1F4DD; Unfallhergang und Massnahmen in Textfelder eintragen
+        </div>
+      </div>
+
+      <!-- STEP 2 -->
+      <div style="background:var(--surf);border:1.5px solid var(--bdr);border-radius:10px;padding:14px;margin-bottom:10px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+          <div style="width:32px;height:32px;background:var(--acc);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:14px;flex-shrink:0">2</div>
+          <div style="font-weight:800;font-size:15px">Fahrzeuge &amp; Objekte</div>
+        </div>
+        <div style="font-size:13px;line-height:1.8;color:var(--tx2)">
+          &#x2795; <b>Fahrzeug / Objekt hinzufuegen</b> fuer jedes beteiligte Fahrzeug antippen<br>
+          &#x1F4F7; Foto des Fahrzeugs machen &rarr; <b>Kennzeichen wird automatisch erkannt</b> (OCR)<br>
+          &#x1F4DD; Schadenbeschreibung eintragen<br>
+          &#x26A0;&#xFE0F; Auch Leitplanken, Gebaeude und sonstige Objekte koennen eingetragen werden
+        </div>
+      </div>
+
+      <!-- STEP 3 -->
+      <div style="background:var(--surf);border:1.5px solid var(--bdr);border-radius:10px;padding:14px;margin-bottom:10px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+          <div style="width:32px;height:32px;background:var(--acc);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:14px;flex-shrink:0">3</div>
+          <div style="font-weight:800;font-size:15px">Lenker</div>
+        </div>
+        <div style="font-size:13px;line-height:1.8;color:var(--tx2)">
+          &#x2795; Lenker hinzufuegen und dem richtigen Fahrzeug zuordnen<br>
+          &#x1FAA6; <b>Fuehrerschein fotografieren</b> &rarr; Name, Geburtsdatum und FS-Klasse werden automatisch erkannt<br>
+          &#x1F4CB; <b>Zulassungsschein fotografieren</b> &rarr; Kennzeichen und Marke werden automatisch erkannt<br>
+          &#x1F4DE; Telefonnummer, Adresse und Versicherung eintragen<br>
+          &#x26A0;&#xFE0F; OCR-Erkennung benoetigt Internet und dauert ca. 10-20 Sekunden
+        </div>
+      </div>
+
+      <!-- STEP 4 -->
+      <div style="background:var(--surf);border:1.5px solid var(--bdr);border-radius:10px;padding:14px;margin-bottom:10px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+          <div style="width:32px;height:32px;background:var(--acc);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:14px;flex-shrink:0">4</div>
+          <div style="font-weight:800;font-size:15px">Fotos</div>
+        </div>
+        <div style="font-size:13px;line-height:1.8;color:var(--tx2)">
+          &#x1F4F7; Gesamtansicht der Unfallstelle fotografieren<br>
+          &#x1F6E3;&#xFE0F; Spurenlage auf der Fahrbahn<br>
+          &#x1F6A7; Strassenschilder und Kilometerstein<br>
+          &#x2795; Weitere Fotos koennen jederzeit hinzugefuegt werden
+        </div>
+      </div>
+
+      <!-- STEP 5 -->
+      <div style="background:var(--surf);border:1.5px solid var(--bdr);border-radius:10px;padding:14px;margin-bottom:16px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+          <div style="width:32px;height:32px;background:var(--ok);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:14px;flex-shrink:0">5</div>
+          <div style="font-weight:800;font-size:15px">Export &amp; Versand</div>
+        </div>
+        <div style="font-size:13px;line-height:1.8;color:var(--tx2)">
+          &#x1F4E6; <b>Lokal speichern</b>: ZIP-Datei mit PDF + allen Fotos wird in Downloads gespeichert<br>
+          &#x1F512; <b>Cryptshare</b>: Sicherer Upload ueber cryptshare.bmi.gv.at (nur im Polizei-Netz)<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;1. Absender-Mail eintragen (eigene Adresse)<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;2. Empfaenger-Mail eintragen<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;3. OTP-Code anfordern &rarr; Code aus Mail eintragen<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;4. Hochladen &rarr; Empfaenger bekommt Link automatisch
+        </div>
+      </div>
+
+      <!-- TIPS -->
+      <div style="background:var(--blu-bg);border:1.5px solid var(--blu-b);border-radius:10px;padding:14px;margin-bottom:10px">
+        <div style="font-weight:800;font-size:15px;color:var(--blu);margin-bottom:8px">&#x1F4A1; Tipps</div>
+        <div style="font-size:13px;line-height:1.9;color:var(--tx2)">
+          &#x1F4BE; <b>Zwischenspeichern</b>: Disk-Symbol oben rechts jederzeit antippen<br>
+          &#x1F504; <b>Entwurf laden</b>: Beim naechsten Oeffnen erscheint "Entwurf laden"<br>
+          &#x1F50D; OCR funktioniert am besten bei <b>guter Beleuchtung</b> und gerader Kameraausrichtung<br>
+          &#x1F4F1; App im <b>Vollbild-Modus</b> speichern: Browser-Menu &rarr; "Zum Startbildschirm"
+        </div>
+      </div>
+
+      <!-- VERSION -->
+      <div style="background:var(--surf2);border:1.5px solid var(--bdr);border-radius:10px;padding:12px 14px;text-align:center">
+        <div style="font-family:monospace;font-size:12px;color:var(--dim)">
+          Unfallaufnahme App v2.1 &middot; PI Telfs &middot; LPD Tirol<br>
+          Erstellt mit Claude AI &middot; Hosted on GitHub Pages<br>
+          PDF-Export: jsPDF &middot; OCR: Tesseract.js &middot; ZIP: JSZip
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
 <script>
 "use strict";
 
@@ -1201,9 +1317,14 @@ async function doExport(openMail) {
     var sizeMB = (zipBlob.size / 1024 / 1024).toFixed(1);
     var url = URL.createObjectURL(zipBlob);
     var a = document.createElement('a');
-    a.href = url; a.download = prefix + '.zip'; a.click();
-    setTimeout(function() { URL.revokeObjectURL(url); }, 5000);
-    toast('ZIP (' + sizeMB + ' MB) gespeichert!');
+    a.href = url;
+    a.download = prefix + '.zip';
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function() { URL.revokeObjectURL(url); }, 10000);
+    toast('ZIP (' + sizeMB + ' MB) wird gespeichert...');
 
     if (openMail) {
       var mail = gv('f-mail');
@@ -1408,6 +1529,16 @@ function csMailLink() {
     + '\n\nMit freundlichen Gruessen\nPI Telfs';
   var mail = gv('cs-recipient') || gv('f-mail') || '';
   window.location.href = 'mailto:' + mail + '?subject=' + subj + '&body=' + encodeURIComponent(bodyTxt);
+}
+
+// ---- HELP ----
+function showHelp() {
+  document.getElementById('help-modal').style.display = 'block';
+  document.body.style.overflow = 'hidden';
+}
+function hideHelp() {
+  document.getElementById('help-modal').style.display = 'none';
+  document.body.style.overflow = '';
 }
 
 // ---- MISC ----
