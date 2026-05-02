@@ -6,12 +6,13 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#1a1a2e">
-<title>Unfallaufnahme · Sachschaden</title>
+<title>Unfallaufnahme - PI Telfs</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/tesseract.js@4.1.4/dist/tesseract.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-:root{
+:root {
   --bg:#f2f4f8; --surf:#fff; --surf2:#eef1f7; --bdr:#d0d8e8;
   --tx:#0d1420; --tx2:#3a4a60; --dim:#6a7a90;
   --acc:#e05c00; --acc-bg:rgba(224,92,0,.08); --acc-b:rgba(224,92,0,.25);
@@ -20,152 +21,146 @@
   --blu:#1a5fff; --blu-bg:rgba(26,95,255,.08); --blu-b:rgba(26,95,255,.25);
   --fn:'DM Sans',sans-serif; --r:14px; --rs:9px;
 }
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html{font-size:17px}
-body{background:var(--bg);color:var(--tx);font-family:var(--fn);min-height:100dvh}
-.screen{display:none;flex-direction:column;min-height:100dvh}
-.screen.active{display:flex}
+* { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent }
+html { font-size:17px }
+body { background:var(--bg); color:var(--tx); font-family:var(--fn); min-height:100dvh }
+.screen { display:none; flex-direction:column; min-height:100dvh }
+.screen.active { display:flex }
 
-.topbar{background:var(--surf);border-bottom:2px solid var(--bdr);padding:12px 14px;
-  display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:100;
-  box-shadow:0 2px 8px rgba(0,0,0,.06)}
-.logo{width:36px;height:36px;background:linear-gradient(145deg,#1a3a6e,#0d1f3c);
-  border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
-.topbar h1{font-size:17px;font-weight:800}
-.topbar small{display:block;font-size:12px;color:var(--dim);margin-top:1px}
-.save-btn{margin-left:auto;background:var(--ok-bg);border:1.5px solid rgba(0,135,90,.2);
-  color:var(--ok);border-radius:8px;padding:7px 12px;font-size:13px;font-weight:700;
-  cursor:pointer;font-family:var(--fn)}
+.topbar { background:var(--surf); border-bottom:2px solid var(--bdr); padding:12px 14px;
+  display:flex; align-items:center; gap:10px; position:sticky; top:0; z-index:100;
+  box-shadow:0 2px 8px rgba(0,0,0,.06) }
+.logo { width:36px; height:36px; background:linear-gradient(145deg,#1a3a6e,#0d1f3c);
+  border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0 }
+.topbar h1 { font-size:17px; font-weight:800 }
+.topbar small { display:block; font-size:12px; color:var(--dim); margin-top:1px }
+.save-btn { margin-left:auto; background:var(--ok-bg); border:1.5px solid rgba(0,135,90,.2);
+  color:var(--ok); border-radius:8px; padding:7px 12px; font-size:13px; font-weight:700;
+  cursor:pointer; font-family:var(--fn) }
 
-.tabs{background:var(--surf);border-bottom:1px solid var(--bdr);
-  padding:10px 14px;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
-.tabs::-webkit-scrollbar{display:none}
-.tp{flex-shrink:0;font-size:12px;font-weight:700;padding:7px 13px;border-radius:20px;
-  border:2px solid var(--bdr);color:var(--dim);background:var(--surf);cursor:pointer;transition:all .2s}
-.tp.done{border-color:var(--ok);color:var(--ok);background:var(--ok-bg)}
-.tp.active{border-color:var(--acc);color:var(--acc);background:var(--acc-bg)}
+.tabs { background:var(--surf); border-bottom:1px solid var(--bdr);
+  padding:10px 14px; display:flex; gap:6px; overflow-x:auto; scrollbar-width:none }
+.tabs::-webkit-scrollbar { display:none }
+.tp { flex-shrink:0; font-size:12px; font-weight:700; padding:7px 13px; border-radius:20px;
+  border:2px solid var(--bdr); color:var(--dim); background:var(--surf); cursor:pointer; transition:all .2s }
+.tp.done { border-color:var(--ok); color:var(--ok); background:var(--ok-bg) }
+.tp.active { border-color:var(--acc); color:var(--acc); background:var(--acc-bg) }
 
-.content{flex:1;padding:14px 14px 110px}
+.content { flex:1; padding:14px 14px 110px }
 
-.sec{background:var(--surf);border:1.5px solid var(--bdr);border-radius:var(--r);padding:16px;margin-bottom:14px}
-.sec-hdr{display:flex;align-items:center;gap:10px;margin-bottom:14px}
-.sec-ico{width:40px;height:40px;border-radius:10px;background:var(--acc-bg);
-  border:1.5px solid var(--acc-b);display:flex;align-items:center;justify-content:center;
-  font-size:20px;flex-shrink:0}
-.sec-ttl{font-size:16px;font-weight:800}
-.sec-sub{font-size:12px;color:var(--dim);margin-top:2px}
+.sec { background:var(--surf); border:1.5px solid var(--bdr); border-radius:var(--r); padding:16px; margin-bottom:14px }
+.sec-hdr { display:flex; align-items:center; gap:10px; margin-bottom:14px }
+.sec-ico { width:40px; height:40px; border-radius:10px; background:var(--acc-bg);
+  border:1.5px solid var(--acc-b); display:flex; align-items:center; justify-content:center;
+  font-size:20px; flex-shrink:0 }
+.sec-ttl { font-size:16px; font-weight:800 }
+.sec-sub { font-size:12px; color:var(--dim); margin-top:2px }
 
-.fld{margin-bottom:14px}
-.fld:last-child{margin-bottom:0}
-label{display:block;font-size:13px;font-weight:700;color:var(--tx2);
-  letter-spacing:.4px;text-transform:uppercase;margin-bottom:6px}
-input,textarea,select{
-  width:100%;background:var(--surf2);border:2px solid var(--bdr);border-radius:var(--rs);
-  color:var(--tx);font-family:var(--fn);font-size:17px;font-weight:500;
-  padding:13px 14px;outline:none;transition:border-color .2s;
-  -webkit-appearance:none;appearance:none}
-input:focus,textarea:focus,select:focus{border-color:var(--acc);background:#fff}
-textarea{resize:none;min-height:90px;line-height:1.5}
-select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M6 8L0 0h12z' fill='%236a7a90'/%3E%3C/svg%3E");
-  background-repeat:no-repeat;background-position:right 14px center;padding-right:36px}
-.r2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-input.hi{border-color:var(--blu)!important;background:var(--blu-bg)!important}
+.fld { margin-bottom:14px }
+.fld:last-child { margin-bottom:0 }
+label { display:block; font-size:13px; font-weight:700; color:var(--tx2);
+  letter-spacing:.4px; text-transform:uppercase; margin-bottom:6px }
+input, textarea, select {
+  width:100%; background:var(--surf2); border:2px solid var(--bdr); border-radius:var(--rs);
+  color:var(--tx); font-family:var(--fn); font-size:17px; font-weight:500;
+  padding:13px 14px; outline:none; transition:border-color .2s; -webkit-appearance:none; appearance:none }
+input:focus, textarea:focus, select:focus { border-color:var(--acc); background:#fff }
+textarea { resize:none; min-height:90px; line-height:1.5 }
+select {
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M6 8L0 0h12z' fill='%236a7a90'/%3E%3C/svg%3E");
+  background-repeat:no-repeat; background-position:right 14px center; padding-right:36px }
+.r2 { display:grid; grid-template-columns:1fr 1fr; gap:10px }
+input.hi { border-color:var(--blu) !important; background:var(--blu-bg) !important }
 
-.gps-row{display:flex;gap:8px}
-.gps-row input{flex:1;min-width:0}
-.gps-btn{background:var(--surf2);border:2px solid var(--bdr);color:var(--blu);
-  border-radius:var(--rs);padding:0 14px;font-size:22px;cursor:pointer;flex-shrink:0;
-  min-width:52px;display:flex;align-items:center;justify-content:center}
+.gps-row { display:flex; gap:8px }
+.gps-row input { flex:1; min-width:0 }
+.gps-btn { background:var(--surf2); border:2px solid var(--bdr); color:var(--blu);
+  border-radius:var(--rs); padding:0 14px; font-size:22px; cursor:pointer; flex-shrink:0;
+  min-width:52px; display:flex; align-items:center; justify-content:center }
 
-.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;
-  padding:16px;border:none;border-radius:var(--rs);font-family:var(--fn);
-  font-size:16px;font-weight:800;letter-spacing:.5px;cursor:pointer;
-  transition:transform .15s;text-transform:uppercase;margin-top:8px}
-.btn:active{transform:scale(.97)}
-.btn-p{background:linear-gradient(135deg,#c04800,#e05c00);color:#fff;box-shadow:0 4px 16px rgba(224,92,0,.3)}
-.btn-s{background:var(--surf2);color:var(--tx);border:2px solid var(--bdr)}
-.btn-g{background:linear-gradient(135deg,#006b44,#00875a);color:#fff}
-.btn-r{background:var(--red-bg);color:var(--red);border:2px solid rgba(192,57,43,.2)}
-.btn-sm{padding:10px 14px;font-size:13px;width:auto;margin-top:0}
+.btn { display:flex; align-items:center; justify-content:center; gap:8px; width:100%;
+  padding:16px; border:none; border-radius:var(--rs); font-family:var(--fn);
+  font-size:16px; font-weight:800; letter-spacing:.5px; cursor:pointer;
+  transition:transform .15s; text-transform:uppercase; margin-top:8px }
+.btn:active { transform:scale(.97) }
+.btn-p { background:linear-gradient(135deg,#c04800,#e05c00); color:#fff; box-shadow:0 4px 16px rgba(224,92,0,.3) }
+.btn-s { background:var(--surf2); color:var(--tx); border:2px solid var(--bdr) }
+.btn-g { background:linear-gradient(135deg,#006b44,#00875a); color:#fff }
+.btn-r { background:var(--red-bg); color:var(--red); border:2px solid rgba(192,57,43,.2) }
+.btn-sm { padding:10px 14px; font-size:13px; width:auto; margin-top:0 }
 
-.bot{position:fixed;bottom:0;left:0;right:0;background:var(--surf);border-top:2px solid var(--bdr);
-  padding:12px 14px calc(12px + env(safe-area-inset-bottom));display:flex;gap:10px;
-  z-index:100;box-shadow:0 -4px 16px rgba(0,0,0,.08)}
+.bot { position:fixed; bottom:0; left:0; right:0; background:var(--surf); border-top:2px solid var(--bdr);
+  padding:12px 14px calc(12px + env(safe-area-inset-bottom)); display:flex; gap:10px;
+  z-index:100; box-shadow:0 -4px 16px rgba(0,0,0,.08) }
 
-.card{background:var(--surf2);border:2px solid var(--bdr);border-radius:var(--r);
-  padding:14px;margin-bottom:10px;position:relative}
-.card-hdr{display:flex;align-items:center;gap:10px;margin-bottom:12px}
-.cnum{width:34px;height:34px;border-radius:8px;background:var(--acc);color:#fff;
-  font-weight:800;font-size:15px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.cnum.b{background:var(--blu)}
-.cdel{position:absolute;top:12px;right:12px;background:var(--red-bg);
-  border:1.5px solid rgba(192,57,43,.2);color:var(--red);border-radius:7px;
-  padding:6px 10px;font-size:13px;font-weight:700;cursor:pointer}
-.add-btn{background:var(--surf);border:2px dashed var(--bdr);border-radius:var(--r);
-  padding:16px;display:flex;align-items:center;justify-content:center;gap:10px;
-  cursor:pointer;font-size:15px;font-weight:700;color:var(--dim);width:100%;margin-bottom:10px}
+.card { background:var(--surf2); border:2px solid var(--bdr); border-radius:var(--r); padding:14px; margin-bottom:10px; position:relative }
+.card-hdr { display:flex; align-items:center; gap:10px; margin-bottom:12px }
+.cnum { width:34px; height:34px; border-radius:8px; background:var(--acc); color:#fff;
+  font-weight:800; font-size:15px; display:flex; align-items:center; justify-content:center; flex-shrink:0 }
+.cnum.b { background:var(--blu) }
+.cdel { position:absolute; top:12px; right:12px; background:var(--red-bg);
+  border:1.5px solid rgba(192,57,43,.2); color:var(--red); border-radius:7px;
+  padding:6px 10px; font-size:13px; font-weight:700; cursor:pointer }
+.add-btn { background:var(--surf); border:2px dashed var(--bdr); border-radius:var(--r);
+  padding:16px; display:flex; align-items:center; justify-content:center; gap:10px;
+  cursor:pointer; font-size:15px; font-weight:700; color:var(--dim); width:100%; margin-bottom:10px }
 
-.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
-.pslot{aspect-ratio:4/3;background:var(--surf2);border:2px dashed var(--bdr);
-  border-radius:var(--rs);display:flex;flex-direction:column;align-items:center;
-  justify-content:center;cursor:pointer;overflow:hidden;position:relative}
-.pslot.has{border-style:solid;border-color:var(--ok)}
-.pslot img{width:100%;height:100%;object-fit:cover}
-.pslot .plbl{font-size:11px;font-weight:700;color:var(--dim);margin-top:6px;text-align:center}
-.pdel{position:absolute;top:5px;right:5px;width:26px;height:26px;
-  background:rgba(192,57,43,.9);color:#fff;border:none;border-radius:50%;
-  font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.pgrid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px }
+.pslot { aspect-ratio:4/3; background:var(--surf2); border:2px dashed var(--bdr);
+  border-radius:var(--rs); display:flex; flex-direction:column; align-items:center;
+  justify-content:center; cursor:pointer; overflow:hidden; position:relative }
+.pslot.has { border-style:solid; border-color:var(--ok) }
+.pslot img { width:100%; height:100%; object-fit:cover }
+.pslot .plbl { font-size:11px; font-weight:700; color:var(--dim); margin-top:6px; text-align:center }
+.pdel { position:absolute; top:5px; right:5px; width:26px; height:26px;
+  background:rgba(192,57,43,.9); color:#fff; border:none; border-radius:50%;
+  font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center }
 
-.ocr-badge{display:flex;align-items:center;gap:7px;background:var(--blu-bg);
-  border:1.5px solid var(--blu-b);border-radius:8px;padding:8px 12px;
-  font-size:13px;font-weight:700;color:var(--blu);margin-top:6px}
-.ocr-badge.ok{background:var(--ok-bg);border-color:rgba(0,135,90,.3);color:var(--ok)}
-.spin{display:inline-block;animation:sp .7s linear infinite}
-@keyframes sp{to{transform:rotate(360deg)}}
+.ocr-b { display:flex; align-items:center; gap:7px; background:var(--blu-bg);
+  border:1.5px solid var(--blu-b); border-radius:8px; padding:8px 12px;
+  font-size:13px; font-weight:700; color:var(--blu); margin-top:6px }
+.ocr-b.ok { background:var(--ok-bg); border-color:rgba(0,135,90,.3); color:var(--ok) }
+.ocr-b.warn { background:var(--acc-bg); border-color:var(--acc-b); color:var(--acc) }
+.spin { display:inline-block; animation:sp .7s linear infinite }
+@keyframes sp { to { transform:rotate(360deg) } }
 
-.ibox{border-radius:var(--rs);padding:12px 14px;margin-bottom:14px;font-size:14px;font-weight:600}
-.ibox.a{background:var(--acc-bg);border:1.5px solid var(--acc-b);color:var(--acc)}
-.ibox.b{background:var(--blu-bg);border:1.5px solid var(--blu-b);color:var(--blu)}
+.ibox { border-radius:var(--rs); padding:12px 14px; margin-bottom:14px; font-size:14px; font-weight:600 }
+.ibox.a { background:var(--acc-bg); border:1.5px solid var(--acc-b); color:var(--acc) }
+.ibox.b { background:var(--blu-bg); border:1.5px solid var(--blu-b); color:var(--blu) }
 
-.srow{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--bdr)}
-.srow:last-child{border-bottom:none}
-.sl{color:var(--dim);font-weight:600;font-size:13px;width:40%;flex-shrink:0}
-.sv{font-weight:700;text-align:right;word-break:break-word;width:58%}
-.simgs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
-.simgs img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:7px;border:1.5px solid var(--bdr)}
+.srow { display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--bdr) }
+.srow:last-child { border-bottom:none }
+.sl { color:var(--dim); font-weight:600; font-size:13px; width:40%; flex-shrink:0 }
+.sv { font-weight:700; text-align:right; word-break:break-word; width:58% }
+.simgs { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin-top:8px }
+.simgs img { width:100%; aspect-ratio:4/3; object-fit:cover; border-radius:7px; border:1.5px solid var(--bdr) }
 
-#toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);
-  background:#1a1a2e;color:#fff;font-weight:700;font-size:14px;padding:12px 20px;
-  border-radius:30px;opacity:0;transition:all .3s;z-index:999;pointer-events:none;white-space:nowrap}
-#toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+#toast { position:fixed; bottom:90px; left:50%; transform:translateX(-50%) translateY(20px);
+  background:#1a1a2e; color:#fff; font-weight:700; font-size:14px; padding:12px 20px;
+  border-radius:30px; opacity:0; transition:all .3s; z-index:999; pointer-events:none; white-space:nowrap }
+#toast.on { opacity:1; transform:translateX(-50%) translateY(0) }
 </style>
 </head>
 <body>
 
+<!-- START -->
 <div id="s0" class="screen active">
-  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
-    padding:28px;text-align:center;background:linear-gradient(160deg,#0d1420,#1a2a40);min-height:100dvh">
-    <div style="width:80px;height:80px;background:linear-gradient(145deg,#1a4080,#0d1f3c);
-      border:3px solid rgba(255,255,255,.15);border-radius:16px;display:flex;align-items:center;
-      justify-content:center;font-size:40px;margin-bottom:24px">🚔</div>
-    <div style="font-size:11px;font-weight:700;letter-spacing:3px;color:rgba(255,255,255,.4);margin-bottom:8px">PI TELFS · LPD TIROL</div>
+  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px;text-align:center;background:linear-gradient(160deg,#0d1420,#1a2a40);min-height:100dvh">
+    <div style="width:80px;height:80px;background:linear-gradient(145deg,#1a4080,#0d1f3c);border:3px solid rgba(255,255,255,.15);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:40px;margin-bottom:24px">&#x1F694;</div>
+    <div style="font-size:11px;font-weight:700;letter-spacing:3px;color:rgba(255,255,255,.4);margin-bottom:8px">PI TELFS &middot; LPD TIROL</div>
     <h1 style="font-size:26px;font-weight:900;color:#fff;line-height:1.2;margin-bottom:8px">Verkehrsunfall<br>Sachschaden</h1>
-    <p style="color:rgba(255,255,255,.5);font-size:15px;line-height:1.6;margin-bottom:32px">
-      Datenaufnahme · Foto-Dokumentation<br>OCR-Texterkennung · PDF-Export</p>
-    <button id="start-btn" onclick="startApp()" style="background:linear-gradient(135deg,#c04800,#e05c00);color:#fff;
-      border:none;border-radius:12px;padding:18px 40px;font-family:var(--fn);font-size:18px;
-      font-weight:800;cursor:pointer">▶ Neue Aufnahme</button>
-    <button id="load-btn" onclick="loadSaved()" style="background:none;border:none;
-      color:rgba(255,255,255,.4);font-family:var(--fn);font-size:14px;font-weight:600;
-      cursor:pointer;margin-top:14px;padding:8px">📂 Gespeicherten Entwurf laden</button>
+    <p style="color:rgba(255,255,255,.5);font-size:15px;line-height:1.6;margin-bottom:32px">Datenaufnahme &middot; OCR-Erkennung<br>GPS-Verortung &middot; PDF-Export</p>
+    <button onclick="startApp()" style="background:linear-gradient(135deg,#c04800,#e05c00);color:#fff;border:none;border-radius:12px;padding:18px 40px;font-family:var(--fn);font-size:18px;font-weight:800;cursor:pointer">&#x25B6; Neue Aufnahme</button>
+    <button id="load-btn" onclick="loadSaved()" style="background:none;border:none;color:rgba(255,255,255,.4);font-family:var(--fn);font-size:14px;font-weight:600;cursor:pointer;margin-top:14px;padding:8px">&#x1F4C2; Entwurf laden</button>
   </div>
 </div>
 
+<!-- MAIN -->
 <div id="s1" class="screen">
   <div class="topbar">
-    <div class="logo">🚔</div>
-    <div><h1>Unfallaufnahme</h1><small>Sachschaden · PI Telfs</small></div>
-    <button class="save-btn" onclick="saveData()">💾 Speichern</button>
+    <div class="logo">&#x1F694;</div>
+    <div><h1>Unfallaufnahme</h1><small>Sachschaden &middot; PI Telfs</small></div>
+    <button class="save-btn" onclick="saveData()">&#x1F4BE; Speichern</button>
   </div>
   <div class="tabs">
     <button class="tp active" id="tp0" onclick="goTab(0)">1 Unfallort</button>
@@ -175,222 +170,294 @@ input.hi{border-color:var(--blu)!important;background:var(--blu-bg)!important}
     <button class="tp" id="tp4" onclick="goTab(4)">5 Export</button>
   </div>
 
+  <!-- TAB 0 -->
   <div id="t0" class="content">
     <div class="sec">
-      <div class="sec-hdr"><div class="sec-ico">📍</div>
-        <div><div class="sec-ttl">Unfallzeit & Ort</div><div class="sec-sub">Wann und wo?</div></div></div>
+      <div class="sec-hdr"><div class="sec-ico">&#x1F4CD;</div>
+        <div><div class="sec-ttl">Unfallzeit &amp; Ort</div><div class="sec-sub">Wann und wo?</div></div></div>
       <div class="fld r2">
         <div><label>Datum</label><input type="date" id="f-datum"></div>
         <div><label>Uhrzeit</label><input type="time" id="f-uhrzeit"></div>
       </div>
       <div class="fld">
-        <label>Straße / Örtlichkeit</label>
+        <label>Strasse / Oertlichkeit</label>
         <div class="gps-row">
           <input type="text" id="f-strasse" placeholder="z.B. B171, Km 43,2">
-          <button class="gps-btn" id="gb1" onclick="fillGPS('f-strasse','gb1')">📍</button>
+          <button class="gps-btn" id="gb1" onclick="doGPS()">&#x1F4CD;</button>
         </div>
+      </div>
+      <!-- GPS BOX -->
       <div id="gps-box" style="display:none;margin-top:8px;background:#fff8f0;border:1.5px solid #e8c890;border-radius:10px;padding:12px">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-          <div style="font-size:13px;font-weight:700;color:#8a5a00;text-transform:uppercase;letter-spacing:.5px">📍 GPS-Position</div>
-        </div>
-        <div style="font-family:monospace;font-size:16px;font-weight:700;color:var(--tx);background:var(--surf2);border:1.5px solid var(--bdr);border-radius:7px;padding:10px 12px;margin-bottom:8px;letter-spacing:.5px" id="gps-coords-display">–</div>
-        <input type="hidden" id="f-lat"><input type="hidden" id="f-lon">
-        <a id="gmaps-link" href="#" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:8px;background:linear-gradient(135deg,#1a6fff,#0d4fcf);color:#fff;border-radius:8px;padding:12px;font-family:var(--fn);font-size:14px;font-weight:800;text-decoration:none;letter-spacing:.5px">
-          <span style="font-size:18px">🗺️</span> IN GOOGLE MAPS ÖFFNEN
+        <div style="font-size:12px;font-weight:700;color:#8a5a00;letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px">GPS-Position erfasst</div>
+        <div id="gps-disp" style="font-family:monospace;font-size:16px;font-weight:700;background:var(--surf2);border:1.5px solid var(--bdr);border-radius:7px;padding:10px 12px;margin-bottom:8px;letter-spacing:.5px">-</div>
+        <a id="gps-link" href="#" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:8px;background:linear-gradient(135deg,#1a6fff,#0d4fcf);color:#fff;border-radius:8px;padding:12px;font-family:var(--fn);font-size:14px;font-weight:800;text-decoration:none;letter-spacing:.5px">
+          &#x1F5FA;&#xFE0F; IN GOOGLE MAPS OEFFNEN
         </a>
-        <div style="font-size:11px;color:var(--dim);margin-top:7px;text-align:center">Link auch im PDF enthalten – am PC einfach kopieren</div>
+        <div style="font-size:11px;color:var(--dim);margin-top:7px;text-align:center">Link auch im PDF enthalten - am PC einfach anklicken oder kopieren</div>
       </div>
-      </div>
-      <div class="fld r2">
+      <input type="hidden" id="f-lat">
+      <input type="hidden" id="f-lon">
+      <div class="fld r2" style="margin-top:14px">
         <div><label>Gemeinde</label>
           <select id="f-gem">
             <option>Telfs</option><option>Pfaffenhofen</option><option>Oberhofen i.I.</option>
             <option>Flaurling</option><option>Pettnau</option><option>Wildermieming</option><option>Andere</option>
           </select>
         </div>
-        <div><label>Richtung / KM</label><input type="text" id="f-richtung" placeholder="Richtung Innsbruck"></div>
+        <div><label>Richtung / KM</label><input type="text" id="f-richtung" placeholder="z.B. Richtung Innsbruck"></div>
       </div>
     </div>
     <div class="sec">
-      <div class="sec-hdr"><div class="sec-ico">🌤️</div><div><div class="sec-ttl">Verhältnisse</div></div></div>
+      <div class="sec-hdr"><div class="sec-ico">&#x2600;&#xFE0F;</div><div><div class="sec-ttl">Verhaeltnisse</div></div></div>
       <div class="fld"><label>Wetter</label>
-        <select id="f-wetter"><option>Klar / Sonnig</option><option>Bewölkt</option><option>Regen / Nass</option>
-          <option>Schneefall</option><option>Nebel</option><option>Glatteis</option><option>Sturm</option></select></div>
-      <div class="fld"><label>Straßenzustand</label>
-        <select id="f-strverh"><option>Trocken</option><option>Nass / Feucht</option><option>Schnee</option>
-          <option>Eisglätte</option><option>Rollsplitt</option></select></div>
-      <div class="fld"><label>Lichtverhältnisse</label>
-        <select id="f-licht"><option>Tageslicht</option><option>Dämmerung</option>
-          <option>Dunkel / Straßenbeleuchtung</option><option>Dunkel / Keine Beleuchtung</option></select></div>
+        <select id="f-wetter">
+          <option>Klar / Sonnig</option><option>Bewoelkt</option><option>Regen / Nass</option>
+          <option>Schneefall</option><option>Nebel</option><option>Glatteis</option><option>Sturm</option>
+        </select></div>
+      <div class="fld"><label>Strassenzustand</label>
+        <select id="f-strverh"><option>Trocken</option><option>Nass / Feucht</option><option>Schnee</option><option>Eisglaette</option><option>Rollsplitt</option></select></div>
+      <div class="fld"><label>Lichtverhaeltnisse</label>
+        <select id="f-licht"><option>Tageslicht</option><option>Daemmerung</option><option>Dunkel / Strassenbeleuchtung</option><option>Dunkel / Keine Beleuchtung</option></select></div>
     </div>
     <div class="sec">
-      <div class="sec-hdr"><div class="sec-ico">📝</div><div><div class="sec-ttl">Sachverhalt & Maßnahmen</div></div></div>
-      <div class="fld"><label>Unfallhergang</label><textarea id="f-hergang" placeholder="Kurze Beschreibung…"></textarea></div>
-      <div class="fld"><label>Maßnahmen</label><textarea id="f-mass" placeholder="z.B. Alkotest, Anzeige…" style="min-height:70px"></textarea></div>
+      <div class="sec-hdr"><div class="sec-ico">&#x1F4DD;</div><div><div class="sec-ttl">Sachverhalt &amp; Massnahmen</div></div></div>
+      <div class="fld"><label>Unfallhergang</label><textarea id="f-hergang" placeholder="Kurze Beschreibung..."></textarea></div>
+      <div class="fld"><label>Massnahmen</label><textarea id="f-mass" placeholder="z.B. Alkotest, Anzeige..." style="min-height:70px"></textarea></div>
     </div>
-    <button class="btn btn-p" onclick="goTab(1)">Weiter → Fahrzeuge</button>
+    <button class="btn btn-p" onclick="goTab(1)">Weiter Fahrzeuge</button>
   </div>
 
+  <!-- TAB 1 -->
   <div id="t1" class="content" style="display:none">
-    <div class="ibox a">🚗 Alle beteiligten Fahrzeuge und beschädigte Objekte eintragen.</div>
+    <div class="ibox a">Alle beteiligten Fahrzeuge und beschaedigte Objekte eintragen.</div>
     <div id="fz-list"></div>
-    <button class="add-btn" onclick="addFZ()"><span style="font-size:22px">＋</span> Fahrzeug / Objekt hinzufügen</button>
+    <button class="add-btn" onclick="addFZ()"><span style="font-size:22px">+</span> Fahrzeug / Objekt hinzufuegen</button>
     <div class="sec">
-      <div class="sec-hdr"><div class="sec-ico">📏</div><div><div class="sec-ttl">Geschwindigkeit</div></div></div>
+      <div class="sec-hdr"><div class="sec-ico">&#x1F4CF;</div><div><div class="sec-ttl">Geschwindigkeit</div></div></div>
       <div class="fld r2">
-        <div><label>Höchstgeschwindigkeit</label><input type="text" id="f-vmax" placeholder="50 km/h"></div>
+        <div><label>Hoechstgeschwindigkeit</label><input type="text" id="f-vmax" placeholder="50 km/h"></div>
         <div><label>Fahrtrichtung Fzg.1</label><input type="text" id="f-fahr" placeholder="z.B. Nord"></div>
       </div>
     </div>
-    <button class="btn btn-p" onclick="goTab(2)">Weiter → Lenker</button>
+    <button class="btn btn-p" onclick="goTab(2)">Weiter Lenker</button>
   </div>
 
+  <!-- TAB 2 -->
   <div id="t2" class="content" style="display:none">
-    <div class="ibox b">👤 Lenker eintragen. Führerschein &amp; Zulassung fotografieren — Daten werden automatisch erkannt!</div>
+    <div class="ibox b">Lenker eintragen. Fuehrerschein und Zulassung fotografieren - Daten werden automatisch erkannt!</div>
     <div id="l-list"></div>
-    <button class="add-btn" onclick="addL()"><span style="font-size:22px">＋</span> Weiteren Lenker hinzufügen</button>
-    <button class="btn btn-p" onclick="goTab(3)">Weiter → Fotos</button>
+    <button class="add-btn" onclick="addL()"><span style="font-size:22px">+</span> Weiteren Lenker hinzufuegen</button>
+    <button class="btn btn-p" onclick="goTab(3)">Weiter Fotos</button>
   </div>
 
+  <!-- TAB 3 -->
   <div id="t3" class="content" style="display:none">
     <div class="sec">
-      <div class="sec-hdr"><div class="sec-ico">📷</div>
-        <div><div class="sec-ttl">Unfallfotos</div><div class="sec-sub">Gesamtansicht, Spuren, Schäden</div></div></div>
+      <div class="sec-hdr"><div class="sec-ico">&#x1F4F7;</div>
+        <div><div class="sec-ttl">Unfallfotos</div><div class="sec-sub">Gesamtansicht, Spuren, Schaeden</div></div></div>
       <div class="pgrid" id="ep-grid"></div>
       <button class="add-btn" style="margin-top:6px;margin-bottom:0" onclick="addEP()">
-        <span style="font-size:22px">📷</span> Weiteres Foto</button>
+        <span style="font-size:22px">&#x1F4F7;</span> Weiteres Foto</button>
     </div>
-    <div class="ibox b">💡 Gesamtansicht, Spurenlage, alle Schäden, Straßenschilder und Kilometerstein fotografieren.</div>
-    <button class="btn btn-p" onclick="goTab(4)">Weiter → Export</button>
+    <div class="ibox b">Gesamtansicht, Spurenlage, alle Schaeden, Strassenschilder und Kilometerstein fotografieren.</div>
+    <button class="btn btn-p" onclick="goTab(4)">Weiter Export</button>
   </div>
 
+  <!-- TAB 4 -->
   <div id="t4" class="content" style="display:none">
     <div id="summary"></div>
     <div class="sec" style="border-color:rgba(0,135,90,.25);background:var(--ok-bg)">
       <div class="sec-hdr">
-        <div class="sec-ico" style="background:var(--ok-bg);border-color:rgba(0,135,90,.3)">📤</div>
-        <div><div class="sec-ttl">Export & Versand</div></div>
+        <div class="sec-ico" style="background:var(--ok-bg);border-color:rgba(0,135,90,.3)">&#x1F4E4;</div>
+        <div><div class="sec-ttl">Export &amp; Versand</div></div>
       </div>
-      <div class="fld"><label>Empfänger E-Mail</label>
+      <div class="fld"><label>Empfaenger E-Mail</label>
         <input type="email" id="f-mail" placeholder="inspektion.telfs@polizei.gv.at"></div>
-      <button class="btn btn-g" onclick="exportPDF()">📄 PDF ERSTELLEN & VERSENDEN</button>
-      <button class="btn btn-s" onclick="exportOnly()">💾 NUR PDF HERUNTERLADEN</button>
+      <!-- CRYPTSHARE UPLOAD -->
+      <div style="background:var(--surf2);border:1.5px solid var(--bdr);border-radius:10px;padding:14px;margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+          <div style="font-size:22px">&#x1F512;</div>
+          <div><div style="font-size:14px;font-weight:800">Cryptshare BMI</div><div style="font-size:12px;color:var(--dim)">Sicherer Dienstweg - cryptshare.bmi.gv.at</div></div>
+        </div>
+        <div class="fld"><label>Absender (Deine Dienstmail)</label>
+          <input type="email" id="cs-sender" placeholder="vorname.nachname@polizei.gv.at"></div>
+        <div class="fld"><label>Empfaenger E-Mail</label>
+          <input type="email" id="cs-recipient" placeholder="staatsanwaltschaft@justiz.gv.at"></div>
+
+        <!-- STEP 1: Request OTP -->
+        <div id="cs-step1">
+          <button class="btn btn-g" onclick="csRequestOTP()" style="margin-top:4px">&#x1F512; Cryptshare - OTP anfordern</button>
+        </div>
+
+        <!-- STEP 2: Enter OTP -->
+        <div id="cs-step2" style="display:none">
+          <div style="background:var(--ok-bg);border:1.5px solid rgba(0,135,90,.3);border-radius:8px;padding:10px;margin-top:8px;font-size:13px;color:var(--ok);font-weight:600">
+            OTP wurde an deine Dienstmail geschickt. Bitte eintragen:
+          </div>
+          <div class="fld" style="margin-top:10px"><label>OTP Code</label>
+            <input type="text" id="cs-otp" placeholder="z.B. 123456" style="font-family:monospace;font-size:22px;letter-spacing:4px;text-align:center"></div>
+          <button class="btn btn-g" onclick="csVerifyAndUpload()">&#x2705; Bestaetigen &amp; Hochladen</button>
+          <button class="btn btn-s" onclick="csReset()" style="margin-top:4px;font-size:13px">Abbrechen</button>
+        </div>
+
+        <!-- STEP 3: Progress -->
+        <div id="cs-step3" style="display:none;text-align:center;padding:12px 0">
+          <div style="font-size:24px;margin-bottom:8px" id="cs-icon">&#x23F3;</div>
+          <div id="cs-status" style="font-size:14px;font-weight:700;color:var(--blu)">Wird vorbereitet...</div>
+          <div id="cs-detail" style="font-size:12px;color:var(--dim);margin-top:4px"></div>
+          <div id="cs-progress-bar" style="height:6px;background:var(--bdr);border-radius:3px;margin-top:10px;overflow:hidden">
+            <div id="cs-progress-fill" style="height:100%;background:linear-gradient(90deg,var(--ok),#00c870);border-radius:3px;width:0%;transition:width .4s"></div>
+          </div>
+        </div>
+
+        <!-- STEP 4: Result -->
+        <div id="cs-step4" style="display:none">
+          <div style="background:var(--ok-bg);border:1.5px solid rgba(0,135,90,.3);border-radius:8px;padding:12px;margin-top:8px">
+            <div style="font-size:13px;font-weight:800;color:var(--ok);margin-bottom:6px">&#x2705; Erfolgreich hochgeladen!</div>
+            <div style="font-size:11px;color:var(--dim);margin-bottom:8px">Download-Link fuer Empfaenger:</div>
+            <div id="cs-result-link" style="font-family:monospace;font-size:12px;background:var(--surf);border:1.5px solid var(--bdr);border-radius:6px;padding:8px;word-break:break-all;color:var(--blu);margin-bottom:8px">-</div>
+            <div style="display:flex;gap:6px">
+              <button onclick="csCopyLink()" style="flex:1;background:var(--blu-bg);border:1.5px solid var(--blu-b);color:var(--blu);border-radius:7px;padding:9px;font-family:var(--fn);font-size:13px;font-weight:700;cursor:pointer">&#x1F4CB; Kopieren</button>
+              <button onclick="csMailLink()" style="flex:1;background:var(--ok-bg);border:1.5px solid rgba(0,135,90,.3);color:var(--ok);border-radius:7px;padding:9px;font-family:var(--fn);font-size:13px;font-weight:700;cursor:pointer">&#x2709;&#xFE0F; Per Mail</button>
+            </div>
+          </div>
+          <button class="btn btn-s" onclick="csReset()" style="margin-top:6px;font-size:13px">Neuer Upload</button>
+        </div>
+
+        <!-- CORS ERROR -->
+        <div id="cs-cors-err" style="display:none;background:var(--red-bg);border:1.5px solid rgba(192,57,43,.2);border-radius:8px;padding:12px;margin-top:8px;font-size:13px;color:var(--red)">
+          <strong>Netzwerkfehler:</strong> Cryptshare ist nur aus dem Polizei-Intranet/VPN erreichbar. Bitte lokal speichern und manuell uebermitteln.
+        </div>
+      </div>
+
+      <button class="btn btn-s" onclick="doExport(false)">&#x1F4BE; Lokal speichern (PDF + Fotos als ZIP)</button>
     </div>
-    <button class="btn btn-r" onclick="resetApp()" style="margin-top:6px;font-size:14px">🗑️ Neue Aufnahme beginnen</button>
+    <button class="btn btn-r" onclick="resetApp()" style="margin-top:6px;font-size:14px">Neue Aufnahme beginnen</button>
   </div>
 
   <div class="bot">
-    <button class="btn btn-s btn-sm" id="btn-prev" onclick="prevTab()" style="flex:1">← Zurück</button>
-    <button class="btn btn-p btn-sm" id="btn-next" onclick="nextTab()" style="flex:2">Weiter →</button>
+    <button class="btn btn-s btn-sm" id="btn-prev" onclick="prevTab()" style="flex:1">Zurueck</button>
+    <button class="btn btn-p btn-sm" id="btn-next" onclick="nextTab()" style="flex:2">Weiter</button>
   </div>
 </div>
 
 <div id="toast"></div>
 
 <script>
+"use strict";
+
+// ---- STATE ----
 var ct = 0;
 var FZ = [], LE = [], EP = [];
 var FZP = {}, LEP = {};
 var fzc = 1, lc = 1, epc = 0;
-var ocrW = null;
 
-function showScr(id){
-  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+// ---- NAVIGATION ----
+function showScr(id) {
+  document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('active'); });
   document.getElementById(id).classList.add('active');
 }
 
-function goTab(n){
+function goTab(n) {
   document.getElementById('t' + ct).style.display = 'none';
-  document.querySelectorAll('.tp').forEach(function(p, i){
+  document.querySelectorAll('.tp').forEach(function(p, i) {
     p.classList.remove('active', 'done');
-    if(i < n) p.classList.add('done');
-    else if(i === n) p.classList.add('active');
+    if (i < n) p.classList.add('done');
+    else if (i === n) p.classList.add('active');
   });
   ct = n;
   document.getElementById('t' + n).style.display = 'block';
   window.scrollTo(0, 0);
-  document.getElementById('btn-prev').disabled = n === 0;
-  document.getElementById('btn-prev').style.opacity = n === 0 ? '0.3' : '1';
-  document.getElementById('btn-next').textContent = n === 4 ? 'Export' : 'Weiter →';
-  if(n === 4) buildSummary();
+  document.getElementById('btn-prev').disabled = (n === 0);
+  document.getElementById('btn-prev').style.opacity = (n === 0) ? '0.3' : '1';
+  document.getElementById('btn-next').textContent = (n === 4) ? 'Export' : 'Weiter';
+  if (n === 4) buildSummary();
 }
-function nextTab(){ if(ct < 4) goTab(ct + 1); }
-function prevTab(){ if(ct > 0) goTab(ct - 1); }
+function nextTab() { if (ct < 4) goTab(ct + 1); }
+function prevTab() { if (ct > 0) goTab(ct - 1); }
 
-function lDate(){
-  var d = new Date(), p = function(n){ return String(n).padStart(2,'0'); };
-  return d.getFullYear() + '-' + p(d.getMonth()+1) + '-' + p(d.getDate());
+// ---- HELPERS ----
+function lDate() {
+  var d = new Date(), p = function(n) { return String(n).padStart(2, '0'); };
+  return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
 }
-function lTime(){
-  var d = new Date(), p = function(n){ return String(n).padStart(2,'0'); };
+function lTime() {
+  var d = new Date(), p = function(n) { return String(n).padStart(2, '0'); };
   return p(d.getHours()) + ':' + p(d.getMinutes());
 }
+function gv(id) { var e = document.getElementById(id); return e ? e.value : ''; }
+function sv(id, v) { var e = document.getElementById(id); if (e) e.value = v; }
 
-function startApp(){
+function startApp() {
   resetState();
   showScr('s1');
   goTab(0);
-  document.getElementById('f-datum').value = lDate();
-  document.getElementById('f-uhrzeit').value = lTime();
+  sv('f-datum', lDate());
+  sv('f-uhrzeit', lTime());
   addEP(); addEP(); addEP();
-  loadOCR();
 }
 
-function loadOCR(){
-  // Tesseract v5: no pre-init needed, use Tesseract.recognize() directly
-  console.log('OCR bereit (Tesseract v5)');
-}
+// ---- GPS ----
+function doGPS() {
+  if (!navigator.geolocation) { alert('GPS nicht verfuegbar!'); return; }
+  var btn = document.getElementById('gb1');
+  btn.textContent = '...'; btn.disabled = true;
 
-async function runOCR(b64){
-  try{
-    var result = await Tesseract.recognize(b64, 'deu', {
-      logger: function(m){ if(m.status === 'recognizing text') console.log('OCR: ' + Math.round(m.progress*100) + '%'); }
-    });
-    return result.data.text || '';
-  } catch(e){ console.warn('OCR Fehler:', e); return ''; }
-}
-
-async function fillGPS(fid, bid){
-  if(!navigator.geolocation){ alert('GPS nicht verfügbar!'); return; }
-  var btn = document.getElementById(bid);
-  btn.textContent = '⏳'; btn.disabled = true;
   navigator.geolocation.getCurrentPosition(
-    async function(pos){
-      try{
-        var lat = pos.coords.latitude, lon = pos.coords.longitude;
-        var url = 'https://nominatim.openstreetmap.org/reverse?lat=' + lat + '&lon=' + lon + '&format=json&accept-language=de&zoom=17';
-        var r = await fetch(url, { headers: { 'User-Agent': 'PI-Telfs-Unfall/1.0' } });
-        var d = await r.json();
-        var a = d.address || {};
-        var road = a.road || a.pedestrian || a.footway || '';
-        var hn = a.house_number ? ' ' + a.house_number : '';
-        var place = a.city || a.town || a.village || '';
-        document.getElementById(fid).value = ([road + hn, place].filter(function(x){ return x.trim(); }).join(', ')) || (lat.toFixed(5) + ', ' + lon.toFixed(5));
-        if(place){
-          var sel = document.getElementById('f-gem');
-          for(var i = 0; i < sel.options.length; i++){
-            if(sel.options[i].text.toLowerCase().startsWith(place.toLowerCase().split(' ')[0])){ sel.selectedIndex = i; break; }
+    function(pos) {
+      var lat = pos.coords.latitude;
+      var lon = pos.coords.longitude;
+
+      sv('f-lat', lat.toFixed(6));
+      sv('f-lon', lon.toFixed(6));
+
+      // Show GPS box
+      document.getElementById('gps-box').style.display = 'block';
+      document.getElementById('gps-disp').textContent = lat.toFixed(6) + ', ' + lon.toFixed(6);
+      document.getElementById('gps-link').href = 'https://maps.google.com/?q=' + lat.toFixed(6) + ',' + lon.toFixed(6);
+
+      // Reverse geocode
+      fetch('https://nominatim.openstreetmap.org/reverse?lat=' + lat + '&lon=' + lon + '&format=json&accept-language=de&zoom=17',
+        { headers: { 'User-Agent': 'PI-Telfs-Unfall/1.0' } })
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+          var a = d.address || {};
+          var road = a.road || a.pedestrian || a.footway || '';
+          var hn = a.house_number ? ' ' + a.house_number : '';
+          var place = a.city || a.town || a.village || '';
+          sv('f-strasse', [road + hn, place].filter(function(x) { return x.trim(); }).join(', ') || (lat.toFixed(6) + ', ' + lon.toFixed(6)));
+          if (place) {
+            var sel = document.getElementById('f-gem');
+            for (var i = 0; i < sel.options.length; i++) {
+              if (sel.options[i].text.toLowerCase().indexOf(place.toLowerCase().split(' ')[0]) === 0) {
+                sel.selectedIndex = i; break;
+              }
+            }
           }
-        }
-      } catch(e){
-        document.getElementById(fid).value = pos.coords.latitude.toFixed(5) + ', ' + pos.coords.longitude.toFixed(5);
-      }
-      btn.textContent = '📍'; btn.disabled = false;
+        })
+        .catch(function() {
+          sv('f-strasse', lat.toFixed(6) + ', ' + lon.toFixed(6));
+        });
+
+      btn.textContent = '\uD83D\uDCCD'; btn.disabled = false;
     },
-    function(e){ alert('GPS-Fehler'); btn.textContent = '📍'; btn.disabled = false; },
+    function() {
+      alert('GPS-Fehler'); btn.textContent = '\uD83D\uDCCD'; btn.disabled = false;
+    },
     { enableHighAccuracy: true, timeout: 12000 }
   );
 }
 
-function compress(file, cb){
+// ---- OCR ----
+function compressImg(file, cb) {
   var reader = new FileReader();
-  reader.onload = function(ev){
+  reader.onload = function(ev) {
     var img = new Image();
-    img.onload = function(){
+    img.onload = function() {
       var cv = document.createElement('canvas');
       var scale = Math.min(1, 1400 / img.width);
-      cv.width = img.width * scale;
-      cv.height = img.height * scale;
+      cv.width = Math.round(img.width * scale);
+      cv.height = Math.round(img.height * scale);
       cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
       cb(cv.toDataURL('image/jpeg', 0.85));
     };
@@ -399,522 +466,948 @@ function compress(file, cb){
   reader.readAsDataURL(file);
 }
 
-function findKZ(txt){
-  var upper = txt.toUpperCase().replace(/\n/g, ' ');
-  var ms = upper.match(/\b[A-Z]{1,3}[\- ][A-Z0-9]{2,6}\b/g);
-  if(!ms) return null;
-  var ok = ms.filter(function(m){ var c = m.replace(/[\- ]/g,''); return c.length >= 3 && c.length <= 9; });
-  if(!ok.length) return null;
-  return ok[0].replace(/\s+/, '-');
+function runOCR(b64, cb) {
+  showBdg('ocr-global', 'OCR laeuft... (10-20 Sek.)');
+  Tesseract.recognize(b64, 'deu', { logger: function() {} })
+    .then(function(result) {
+      rmBdg('ocr-global');
+      cb(result.data.text || '');
+    })
+    .catch(function(err) {
+      console.warn('OCR Fehler:', err);
+      rmBdg('ocr-global');
+      cb('');
+    });
 }
 
-function findFS(txt){
-  var lines = txt.split('\n').map(function(l){ return l.trim(); }).filter(Boolean);
+function parseKZ(txt) {
+  var upper = txt.replace(/\n/g, ' ').toUpperCase();
+  var found = [];
+  var words = upper.split(/\s+/);
+  for (var i = 0; i < words.length; i++) {
+    var w = words[i];
+    if (/^[A-Z]{1,3}-[A-Z0-9]{2,6}$/.test(w)) { found.push(w); }
+  }
+  // also try joined adjacent words
+  for (var j = 0; j < words.length - 1; j++) {
+    var combo = words[j] + '-' + words[j+1];
+    if (/^[A-Z]{1,3}-[A-Z0-9]{2,6}$/.test(combo)) { found.push(combo); }
+  }
+  if (!found.length) return null;
+  return found[0];
+}
+
+function parseFS(txt) {
+  var lines = txt.split('\n');
   var name = '', geb = '', fskl = '';
-  for(var i = 0; i < lines.length; i++){
-    var l = lines[i];
-    if(/^1[.\s]/.test(l)){ var n = l.replace(/^1[.\s]+/, '').trim(); if(n.length > 1) name = n; }
-    if(/^2[.\s]/.test(l)){ var n2 = l.replace(/^2[.\s]+/, '').trim(); if(n2.length > 1) name = (name + ' ' + n2).trim(); }
+  for (var i = 0; i < lines.length; i++) {
+    var l = lines[i].trim();
+    if (!l) continue;
+    if (/^1[.\s]/.test(l)) {
+      var n1 = l.replace(/^1[.\s]+/, '').trim();
+      if (n1.length > 1) name = n1;
+    }
+    if (/^2[.\s]/.test(l)) {
+      var n2 = l.replace(/^2[.\s]+/, '').trim();
+      if (n2.length > 1) name = (name + ' ' + n2).trim();
+    }
     var dm = l.match(/(\d{2})[.\-\/](\d{2})[.\-\/](\d{2,4})/);
-    if(dm && !geb){
+    if (dm && !geb) {
       var yr = dm[3].length === 2 ? (parseInt(dm[3]) > 30 ? '19' + dm[3] : '20' + dm[3]) : dm[3];
       geb = yr + '-' + dm[2] + '-' + dm[1];
     }
-    if(/^9[.\s]/.test(l) || /^10[.\s]/.test(l)){ fskl = l.replace(/^\d+[.\s]+/, '').trim(); }
+    if (/^9[.\s]/.test(l) || /^10[.\s]/.test(l)) {
+      fskl = l.replace(/^\d+[.\s]+/, '').trim();
+    }
   }
-  if(!name){ var nm = txt.match(/\b([A-ZÄÖÜ][a-zäöüß]+)\s+([A-ZÄÖÜ][a-zäöüß]+)\b/); if(nm) name = nm[1] + ' ' + nm[2]; }
+  if (!name) {
+    var nm = txt.match(/([A-Z][a-z]+)\s+([A-Z][a-z]+)/);
+    if (nm) name = nm[1] + ' ' + nm[2];
+  }
   return { name: name.trim(), geb: geb, fskl: fskl };
 }
 
-function findZUL(txt){
-  var kz = findKZ(txt) || '';
-  var marke = '', modell = '';
-  var m1 = txt.match(/D\.?1[:\s]+([A-Za-z][A-Za-z\s\-]+?)(?:\n|D\.)/);
-  if(m1) marke = m1[1].trim();
-  var brands = ['Volkswagen','VW','BMW','Mercedes','Audi','Seat','Skoda','Opel','Ford','Renault','Peugeot','Fiat','Toyota','Honda','Hyundai','Kia','Volvo','Mazda'];
-  if(!marke){ for(var i = 0; i < brands.length; i++){ if(txt.toUpperCase().indexOf(brands[i].toUpperCase()) >= 0){ marke = brands[i]; break; } } }
-  return { kz: kz, marke: marke, modell: modell };
+function parseZUL(txt) {
+  var kz = parseKZ(txt) || '';
+  var marke = '';
+  var brandList = ['Volkswagen','VW','BMW','Mercedes','Audi','Seat','Skoda','Opel',
+    'Ford','Renault','Peugeot','Fiat','Toyota','Honda','Hyundai','Kia','Volvo','Mazda'];
+  var upper = txt.toUpperCase();
+  for (var i = 0; i < brandList.length; i++) {
+    if (upper.indexOf(brandList[i].toUpperCase()) >= 0) { marke = brandList[i]; break; }
+  }
+  return { kz: kz, marke: marke };
 }
 
-function showBadge(pid, msg, done){
-  rmBadge(pid);
-  var p = document.getElementById(pid); if(!p) return;
+// ---- BADGE ----
+function showBdg(pid, msg, done, isWarn) {
+  rmBdg(pid);
+  var p = document.getElementById(pid);
+  if (!p) return;
   var b = document.createElement('div');
-  b.className = 'ocr-badge' + (done ? ' ok' : '');
-  b.id = 'ob-' + pid;
-  b.innerHTML = done ? ('✅ ' + msg) : ('<span class="spin">🔍</span> ' + msg);
+  var cls = 'ocr-b';
+  if (done) cls += ' ok';
+  if (isWarn) cls += ' warn';
+  b.className = cls;
+  b.id = 'bdg-' + pid;
+  if (done) b.textContent = 'OK: ' + msg;
+  else if (isWarn) b.textContent = 'Nicht lesbar - bitte manuell eintragen';
+  else b.innerHTML = '<span class="spin">&#x1F50D;</span> ' + msg + ' <span style="font-weight:400;font-size:11px">(ca. 10-20 Sek.)</span>';
   p.appendChild(b);
-  if(done) setTimeout(function(){ rmBadge(pid); }, 5000);
+  if (done || isWarn) setTimeout(function() { rmBdg(pid); }, 6000);
 }
-function rmBadge(pid){ var b = document.getElementById('ob-' + pid); if(b) b.remove(); }
+function rmBdg(pid) {
+  var b = document.getElementById('bdg-' + pid);
+  if (b) b.remove();
+}
 
-function addFZ(){
+// Hidden global OCR status holder
+function ensureOCRDiv() {
+  if (!document.getElementById('ocr-global')) {
+    var d = document.createElement('div');
+    d.id = 'ocr-global';
+    d.style.cssText = 'position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:500';
+    document.body.appendChild(d);
+  }
+}
+
+// ---- FAHRZEUGE ----
+function addFZ() {
   var id = fzc++;
-  FZ.push({ id: id });
+  FZ.push({ id: id, typ:'PKW', kz:'', farbe:'', marke:'', modell:'', schaden:'' });
   FZP[id] = [];
   renderFZ();
 }
-function delFZ(id){
-  FZ = FZ.filter(function(f){ return f.id !== id; });
+function delFZ(id) {
+  FZ = FZ.filter(function(f) { return f.id !== id; });
   delete FZP[id];
   renderFZ();
 }
-function saveFZ(id){
-  var fz = FZ.find(function(f){ return f.id === id; }); if(!fz) return;
-  fz.typ = (document.getElementById('fz-typ-'+id)||{}).value||'';
-  fz.kz  = (document.getElementById('fz-kz-'+id)||{}).value||'';
-  fz.farbe = (document.getElementById('fz-farbe-'+id)||{}).value||'';
-  fz.marke = (document.getElementById('fz-marke-'+id)||{}).value||'';
-  fz.modell = (document.getElementById('fz-modell-'+id)||{}).value||'';
-  fz.schaden = (document.getElementById('fz-schaden-'+id)||{}).value||'';
+function saveFZ(id) {
+  var fz = FZ.find(function(f) { return f.id === id; });
+  if (!fz) return;
+  fz.typ    = gv('fz-typ-' + id);
+  fz.kz     = gv('fz-kz-' + id);
+  fz.farbe  = gv('fz-farbe-' + id);
+  fz.marke  = gv('fz-marke-' + id);
+  fz.modell = gv('fz-modell-' + id);
+  fz.schaden = gv('fz-schaden-' + id);
 }
 
-function renderFZ(){
+function renderFZ() {
   var el = document.getElementById('fz-list');
-  if(!FZ.length){ el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--dim);font-size:15px;font-weight:600">Noch keine Fahrzeuge</div>'; return; }
+  if (!FZ.length) {
+    el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--dim);font-weight:600">Noch keine Fahrzeuge</div>';
+    return;
+  }
   var html = '';
-  FZ.forEach(function(fz, i){
-    html += '<div class="card" id="fz-c-'+fz.id+'">'
-      + '<button class="cdel" onclick="delFZ('+fz.id+')">✕</button>'
-      + '<div class="card-hdr"><div class="cnum">'+(i+1)+'</div><div style="font-size:15px;font-weight:800">Fahrzeug / Objekt '+(i+1)+'</div></div>'
-      + '<div class="fld"><label>Typ</label><select id="fz-typ-'+fz.id+'" onchange="saveFZ('+fz.id+')">'
-      + '<option>PKW</option><option>LKW</option><option>Motorrad</option><option>Moped</option>'
-      + '<option>Fahrrad</option><option>E-Scooter</option><option>Traktor</option>'
-      + '<option>Bus</option><option>Leitplanke / Objekt</option><option>Gebäude</option><option>Sonstiges</option>'
-      + '</select></div>'
-      + '<div class="fld r2"><div><label>Kennzeichen</label><input type="text" id="fz-kz-'+fz.id+'" placeholder="IL-12345" style="text-transform:uppercase" onchange="saveFZ('+fz.id+')"></div>'
-      + '<div><label>Farbe</label><input type="text" id="fz-farbe-'+fz.id+'" placeholder="Rot" onchange="saveFZ('+fz.id+')"></div></div>'
-      + '<div class="fld r2"><div><label>Marke</label><input type="text" id="fz-marke-'+fz.id+'" placeholder="VW" onchange="saveFZ('+fz.id+')"></div>'
-      + '<div><label>Modell</label><input type="text" id="fz-modell-'+fz.id+'" placeholder="Golf" onchange="saveFZ('+fz.id+')"></div></div>'
-      + '<div class="fld"><label>Schadenbeschreibung</label><textarea id="fz-schaden-'+fz.id+'" placeholder="z.B. Frontschaden links…" style="min-height:70px" onchange="saveFZ('+fz.id+')"></textarea></div>'
-      + '<div class="fld"><label>📷 Fotos (Kennzeichen wird erkannt)</label>'
-      + '<div class="pgrid" id="fz-pg-'+fz.id+'"></div>'
-      + '<div id="fz-ob-'+fz.id+'"></div>'
-      + '<button class="add-btn" style="margin-top:6px;margin-bottom:0;font-size:13px;padding:10px" onclick="addFZP('+fz.id+')"><span style="font-size:18px">📷</span> Foto hinzufügen</button>'
-      + '</div></div>';
-  });
+  for (var i = 0; i < FZ.length; i++) {
+    var fz = FZ[i];
+    var ii = i;
+    html += '<div class="card" id="fz-c-' + fz.id + '">';
+    html += '<button class="cdel" onclick="delFZ(' + fz.id + ')">x</button>';
+    html += '<div class="card-hdr"><div class="cnum">' + (i+1) + '</div>';
+    html += '<div style="font-size:15px;font-weight:800">Fahrzeug / Objekt ' + (i+1) + '</div></div>';
+    html += '<div class="fld"><label>Typ</label><select id="fz-typ-' + fz.id + '" onchange="saveFZ(' + fz.id + ')">';
+    html += '<option>PKW</option><option>LKW</option><option>Motorrad</option><option>Moped</option>';
+    html += '<option>Fahrrad</option><option>E-Scooter</option><option>Traktor</option>';
+    html += '<option>Bus</option><option>Leitplanke / Objekt</option><option>Gebaeude</option><option>Sonstiges</option>';
+    html += '</select></div>';
+    html += '<div class="fld r2">';
+    html += '<div><label>Kennzeichen</label><input type="text" id="fz-kz-' + fz.id + '" placeholder="IL-12345" style="text-transform:uppercase" onchange="saveFZ(' + fz.id + ')"></div>';
+    html += '<div><label>Farbe</label><input type="text" id="fz-farbe-' + fz.id + '" placeholder="Rot" onchange="saveFZ(' + fz.id + ')"></div>';
+    html += '</div>';
+    html += '<div class="fld r2">';
+    html += '<div><label>Marke</label><input type="text" id="fz-marke-' + fz.id + '" placeholder="VW" onchange="saveFZ(' + fz.id + ')"></div>';
+    html += '<div><label>Modell</label><input type="text" id="fz-modell-' + fz.id + '" placeholder="Golf" onchange="saveFZ(' + fz.id + ')"></div>';
+    html += '</div>';
+    html += '<div class="fld"><label>Schaden</label>';
+    html += '<textarea id="fz-schaden-' + fz.id + '" placeholder="z.B. Frontschaden links..." style="min-height:70px" onchange="saveFZ(' + fz.id + ')"></textarea></div>';
+    html += '<div class="fld"><label>Fotos (Kennzeichen wird erkannt)</label>';
+    html += '<div class="pgrid" id="fz-pg-' + fz.id + '"></div>';
+    html += '<div id="fz-ob-' + fz.id + '"></div>';
+    html += '<button class="add-btn" style="margin-top:6px;margin-bottom:0;font-size:13px;padding:10px" onclick="addFZP(' + fz.id + ')">+ Foto hinzufuegen</button>';
+    html += '</div></div>';
+  }
   el.innerHTML = html;
-  FZ.forEach(function(fz){
-    renderFZP(fz.id);
-    if(fz.typ && document.getElementById('fz-typ-'+fz.id)) document.getElementById('fz-typ-'+fz.id).value = fz.typ;
-    if(fz.kz && document.getElementById('fz-kz-'+fz.id)) document.getElementById('fz-kz-'+fz.id).value = fz.kz;
-    if(fz.farbe && document.getElementById('fz-farbe-'+fz.id)) document.getElementById('fz-farbe-'+fz.id).value = fz.farbe;
-    if(fz.marke && document.getElementById('fz-marke-'+fz.id)) document.getElementById('fz-marke-'+fz.id).value = fz.marke;
-    if(fz.modell && document.getElementById('fz-modell-'+fz.id)) document.getElementById('fz-modell-'+fz.id).value = fz.modell;
-    if(fz.schaden && document.getElementById('fz-schaden-'+fz.id)) document.getElementById('fz-schaden-'+fz.id).value = fz.schaden;
-  });
+  for (var j = 0; j < FZ.length; j++) {
+    var fz2 = FZ[j];
+    renderFZP(fz2.id);
+    if (fz2.typ) sv('fz-typ-' + fz2.id, fz2.typ);
+    if (fz2.kz) sv('fz-kz-' + fz2.id, fz2.kz);
+    if (fz2.farbe) sv('fz-farbe-' + fz2.id, fz2.farbe);
+    if (fz2.marke) sv('fz-marke-' + fz2.id, fz2.marke);
+    if (fz2.modell) sv('fz-modell-' + fz2.id, fz2.modell);
+    if (fz2.schaden) sv('fz-schaden-' + fz2.id, fz2.schaden);
+  }
 }
 
-function addFZP(fzId){
+function addFZP(fzId) {
   var inp = document.createElement('input');
   inp.type = 'file'; inp.accept = 'image/*'; inp.capture = 'environment';
-  inp.onchange = function(e){
-    var file = e.target.files[0]; if(!file) return;
-    compress(file, async function(b64){
+  inp.onchange = function(e) {
+    var file = e.target.files[0]; if (!file) return;
+    compressImg(file, function(b64) {
       FZP[fzId].push(b64);
       renderFZP(fzId);
       var kzEl = document.getElementById('fz-kz-' + fzId);
-      if(kzEl && !kzEl.value.trim() && ocrW){
-        showBadge('fz-ob-' + fzId, 'Kennzeichen wird erkannt…');
-        var txt = await runOCR(b64);
-        var kz = findKZ(txt);
-        rmBadge('fz-ob-' + fzId);
-        if(kz){ kzEl.value = kz; kzEl.classList.add('hi'); saveFZ(fzId); showBadge('fz-ob-' + fzId, 'Kennzeichen: ' + kz, true); toast('✅ ' + kz); }
+      if (kzEl && !kzEl.value.trim()) {
+        showBdg('fz-ob-' + fzId, 'Kennzeichen wird erkannt...');
+        ensureOCRDiv();
+        runOCR(b64, function(txt) {
+          var kz = parseKZ(txt);
+          if (kz) {
+            kzEl.value = kz;
+            kzEl.classList.add('hi');
+            saveFZ(fzId);
+            showBdg('fz-ob-' + fzId, 'Erkannt: ' + kz, true);
+            toast('Kennzeichen: ' + kz);
+          } else {
+            showBdg('fz-ob-' + fzId, '', false, true);
+          }
+        });
       }
     });
   };
   inp.click();
 }
 
-function renderFZP(fzId){
-  var el = document.getElementById('fz-pg-' + fzId); if(!el) return;
+function renderFZP(fzId) {
+  var el = document.getElementById('fz-pg-' + fzId);
+  if (!el) return;
   var ps = FZP[fzId] || [];
-  el.innerHTML = ps.map(function(src, i){
-    return '<div class="pslot has"><img src="' + src + '"><button class="pdel" onclick="FZP[' + fzId + '].splice(' + i + ',1);renderFZP(' + fzId + ')">✕</button></div>';
-  }).join('');
+  var html = '';
+  for (var i = 0; i < ps.length; i++) {
+    html += '<div class="pslot has"><img src="' + ps[i] + '">';
+    html += '<button class="pdel" onclick="FZP[' + fzId + '].splice(' + i + ',1);renderFZP(' + fzId + ')">x</button>';
+    html += '</div>';
+  }
+  el.innerHTML = html;
 }
 
-function addL(){
+// ---- LENKER ----
+function addL() {
   var id = lc++;
-  LE.push({ id: id });
+  LE.push({ id: id, fzId:'', name:'', geb:'', tel:'', adr:'', fskl:'', fsdat:'', vers:'' });
   LEP[id] = { fs: null, zul: null };
   renderL();
 }
-function delL(id){
-  LE = LE.filter(function(l){ return l.id !== id; });
+function delL(id) {
+  LE = LE.filter(function(l) { return l.id !== id; });
   delete LEP[id];
   renderL();
 }
-function saveL(id){
-  var l = LE.find(function(x){ return x.id === id; }); if(!l) return;
-  l.fzId = (document.getElementById('l-fz-'+id)||{}).value||'';
-  l.name = (document.getElementById('l-name-'+id)||{}).value||'';
-  l.geb  = (document.getElementById('l-geb-'+id)||{}).value||'';
-  l.tel  = (document.getElementById('l-tel-'+id)||{}).value||'';
-  l.adr  = (document.getElementById('l-adr-'+id)||{}).value||'';
-  l.fskl = (document.getElementById('l-fskl-'+id)||{}).value||'';
-  l.fsdat= (document.getElementById('l-fsdat-'+id)||{}).value||'';
-  l.vers = (document.getElementById('l-vers-'+id)||{}).value||'';
+function saveL(id) {
+  var l = LE.find(function(x) { return x.id === id; });
+  if (!l) return;
+  l.fzId  = gv('l-fz-' + id);
+  l.name  = gv('l-name-' + id);
+  l.geb   = gv('l-geb-' + id);
+  l.tel   = gv('l-tel-' + id);
+  l.adr   = gv('l-adr-' + id);
+  l.fskl  = gv('l-fskl-' + id);
+  l.fsdat = gv('l-fsdat-' + id);
+  l.vers  = gv('l-vers-' + id);
 }
 
-function renderL(){
+function renderL() {
   var el = document.getElementById('l-list');
-  if(!LE.length){ el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--dim);font-size:15px;font-weight:600">Noch keine Lenker</div>'; return; }
+  if (!LE.length) {
+    el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--dim);font-weight:600">Noch keine Lenker</div>';
+    return;
+  }
   var html = '';
-  LE.forEach(function(l, i){
-    var fsHas = LEP[l.id] && LEP[l.id].fs;
-    var zulHas = LEP[l.id] && LEP[l.id].zul;
-    var fzOpts = '<option value="">– wählen –</option>';
-    FZ.forEach(function(fz, fi){ fzOpts += '<option value="' + fz.id + '">Fahrzeug ' + (fi+1) + (fz.kz ? ' (' + fz.kz + ')' : '') + '</option>'; });
+  for (var i = 0; i < LE.length; i++) {
+    var l = LE[i];
+    var lp = LEP[l.id] || {};
+    var fsHas = !!lp.fs;
+    var zulHas = !!lp.zul;
+    var fzOpts = '<option value="">- waehlen -</option>';
+    for (var j = 0; j < FZ.length; j++) {
+      fzOpts += '<option value="' + FZ[j].id + '">Fahrzeug ' + (j+1) + (FZ[j].kz ? ' (' + FZ[j].kz + ')' : '') + '</option>';
+    }
+    html += '<div class="card" id="l-c-' + l.id + '">';
+    html += '<button class="cdel" onclick="delL(' + l.id + ')">x</button>';
+    html += '<div class="card-hdr"><div class="cnum b">' + (i+1) + '</div>';
+    html += '<div style="font-size:15px;font-weight:800">Lenker ' + (i+1) + '</div></div>';
+    html += '<div class="fld"><label>Fahrzeug</label><select id="l-fz-' + l.id + '" onchange="saveL(' + l.id + ')">' + fzOpts + '</select></div>';
+    html += '<div class="fld"><label>Name, Vorname</label><input type="text" id="l-name-' + l.id + '" placeholder="Mustermann Max" onchange="saveL(' + l.id + ')"></div>';
+    html += '<div class="fld r2">';
+    html += '<div><label>Geburtsdatum</label><input type="date" id="l-geb-' + l.id + '" onchange="saveL(' + l.id + ')"></div>';
+    html += '<div><label>Telefon</label><input type="tel" id="l-tel-' + l.id + '" placeholder="+43 664..." onchange="saveL(' + l.id + ')"></div>';
+    html += '</div>';
+    html += '<div class="fld"><label>Wohnadresse</label><input type="text" id="l-adr-' + l.id + '" placeholder="Strasse, PLZ Ort" onchange="saveL(' + l.id + ')"></div>';
+    html += '<div class="fld r2">';
+    html += '<div><label>FS-Klasse</label><input type="text" id="l-fskl-' + l.id + '" placeholder="B, BE..." onchange="saveL(' + l.id + ')"></div>';
+    html += '<div><label>FS ausgestellt</label><input type="date" id="l-fsdat-' + l.id + '" onchange="saveL(' + l.id + ')"></div>';
+    html += '</div>';
+    html += '<div class="fld"><label>Versicherung</label><input type="text" id="l-vers-' + l.id + '" placeholder="z.B. Wiener Staedtische" onchange="saveL(' + l.id + ')"></div>';
 
-    html += '<div class="card" id="l-c-'+l.id+'">'
-      + '<button class="cdel" onclick="delL('+l.id+')">✕</button>'
-      + '<div class="card-hdr"><div class="cnum b">'+(i+1)+'</div><div style="font-size:15px;font-weight:800">Lenker '+(i+1)+'</div></div>'
-      + '<div class="fld"><label>Zugehöriges Fahrzeug</label><select id="l-fz-'+l.id+'" onchange="saveL('+l.id+')">'+fzOpts+'</select></div>'
-      + '<div class="fld"><label>Name, Vorname</label><input type="text" id="l-name-'+l.id+'" placeholder="Mustermann Max" onchange="saveL('+l.id+')"></div>'
-      + '<div class="fld r2"><div><label>Geburtsdatum</label><input type="date" id="l-geb-'+l.id+'" onchange="saveL('+l.id+')"></div>'
-      + '<div><label>Telefon</label><input type="tel" id="l-tel-'+l.id+'" placeholder="+43 664…" onchange="saveL('+l.id+')"></div></div>'
-      + '<div class="fld"><label>Wohnadresse</label><input type="text" id="l-adr-'+l.id+'" placeholder="Straße, PLZ Ort" onchange="saveL('+l.id+')"></div>'
-      + '<div class="fld r2"><div><label>FS-Klasse</label><input type="text" id="l-fskl-'+l.id+'" placeholder="B, BE…" onchange="saveL('+l.id+')"></div>'
-      + '<div><label>FS ausgestellt</label><input type="date" id="l-fsdat-'+l.id+'" onchange="saveL('+l.id+')"></div></div>'
-      + '<div class="fld"><label>Versicherung / Polizzennr.</label><input type="text" id="l-vers-'+l.id+'" placeholder="z.B. Wiener Städtische" onchange="saveL('+l.id+')"></div>'
+    // FS photo
+    html += '<div class="fld"><label>Fuehrerschein (wird automatisch ausgelesen)</label>';
+    if (fsHas) {
+      html += '<div class="pslot has" style="aspect-ratio:16/10"><img src="' + lp.fs + '">';
+      html += '<button class="pdel" onclick="LEP[' + l.id + '].fs=null;renderL()">x</button></div>';
+    } else {
+      html += '<div class="pslot" style="aspect-ratio:16/10" onclick="capDoc(' + l.id + ',\'fs\')">';
+      html += '<div style="text-align:center;pointer-events:none"><div style="font-size:28px">&#x1FAA6;</div><div class="plbl">FUEHRERSCHEIN FOTOGRAFIEREN</div></div>';
+      html += '</div>';
+    }
+    html += '<div id="l-fsob-' + l.id + '"></div></div>';
 
-      + '<div class="fld"><label>🪪 Führerschein (wird automatisch ausgelesen)</label>'
-      + '<div class="pslot ' + (fsHas ? 'has' : '') + '" style="aspect-ratio:16/10" onclick="capDoc(' + l.id + ',\'fs\')">'
-      + (fsHas ? '<img src="' + fsHas + '"><button class="pdel" onclick="event.stopPropagation();LEP[' + l.id + '].fs=null;renderL()">✕</button>'
-               : '<div style="text-align:center;pointer-events:none"><div style="font-size:28px">🪪</div><div class="plbl">FÜHRERSCHEIN FOTOGRAFIEREN</div></div>')
-      + '</div><div id="l-fsob-'+l.id+'"></div></div>'
-
-      + '<div class="fld"><label>📋 Zulassungsschein (wird automatisch ausgelesen)</label>'
-      + '<div class="pslot ' + (zulHas ? 'has' : '') + '" style="aspect-ratio:16/10" onclick="capDoc(' + l.id + ',\'zul\')">'
-      + (zulHas ? '<img src="' + zulHas + '"><button class="pdel" onclick="event.stopPropagation();LEP[' + l.id + '].zul=null;renderL()">✕</button>'
-                : '<div style="text-align:center;pointer-events:none"><div style="font-size:28px">📋</div><div class="plbl">ZULASSUNGSSCHEIN FOTOGRAFIEREN</div></div>')
-      + '</div><div id="l-zulob-'+l.id+'"></div></div>'
-
-      + '</div>';
-  });
+    // ZUL photo
+    html += '<div class="fld"><label>Zulassungsschein (wird automatisch ausgelesen)</label>';
+    if (zulHas) {
+      html += '<div class="pslot has" style="aspect-ratio:16/10"><img src="' + lp.zul + '">';
+      html += '<button class="pdel" onclick="LEP[' + l.id + '].zul=null;renderL()">x</button></div>';
+    } else {
+      html += '<div class="pslot" style="aspect-ratio:16/10" onclick="capDoc(' + l.id + ',\'zul\')">';
+      html += '<div style="text-align:center;pointer-events:none"><div style="font-size:28px">&#x1F4CB;</div><div class="plbl">ZULASSUNGSSCHEIN FOTOGRAFIEREN</div></div>';
+      html += '</div>';
+    }
+    html += '<div id="l-zulob-' + l.id + '"></div></div>';
+    html += '</div>';
+  }
   el.innerHTML = html;
-  LE.forEach(function(l){
-    if(l.fzId && document.getElementById('l-fz-'+l.id)) document.getElementById('l-fz-'+l.id).value = l.fzId;
-    if(l.name && document.getElementById('l-name-'+l.id)) document.getElementById('l-name-'+l.id).value = l.name;
-    if(l.geb && document.getElementById('l-geb-'+l.id)) document.getElementById('l-geb-'+l.id).value = l.geb;
-    if(l.tel && document.getElementById('l-tel-'+l.id)) document.getElementById('l-tel-'+l.id).value = l.tel;
-    if(l.adr && document.getElementById('l-adr-'+l.id)) document.getElementById('l-adr-'+l.id).value = l.adr;
-    if(l.fskl && document.getElementById('l-fskl-'+l.id)) document.getElementById('l-fskl-'+l.id).value = l.fskl;
-    if(l.fsdat && document.getElementById('l-fsdat-'+l.id)) document.getElementById('l-fsdat-'+l.id).value = l.fsdat;
-    if(l.vers && document.getElementById('l-vers-'+l.id)) document.getElementById('l-vers-'+l.id).value = l.vers;
-  });
+  for (var k = 0; k < LE.length; k++) {
+    var lx = LE[k];
+    if (lx.fzId) sv('l-fz-' + lx.id, lx.fzId);
+    if (lx.name) sv('l-name-' + lx.id, lx.name);
+    if (lx.geb) sv('l-geb-' + lx.id, lx.geb);
+    if (lx.tel) sv('l-tel-' + lx.id, lx.tel);
+    if (lx.adr) sv('l-adr-' + lx.id, lx.adr);
+    if (lx.fskl) sv('l-fskl-' + lx.id, lx.fskl);
+    if (lx.fsdat) sv('l-fsdat-' + lx.id, lx.fsdat);
+    if (lx.vers) sv('l-vers-' + lx.id, lx.vers);
+  }
 }
 
-function capDoc(lId, type){
+function capDoc(lId, type) {
   var inp = document.createElement('input');
   inp.type = 'file'; inp.accept = 'image/*'; inp.capture = 'environment';
-  inp.onchange = function(e){
-    var file = e.target.files[0]; if(!file) return;
-    compress(file, async function(b64){
+  inp.onchange = function(e) {
+    var file = e.target.files[0]; if (!file) return;
+    compressImg(file, function(b64) {
+      if (!LEP[lId]) LEP[lId] = { fs: null, zul: null };
       LEP[lId][type] = b64;
       renderL();
-      if(type === 'fs' && ocrW){
-        showBadge('l-fsob-' + lId, 'Führerschein wird gelesen…');
-        var txt = await runOCR(b64);
-        var r = findFS(txt);
-        rmBadge('l-fsob-' + lId);
-        var filled = [];
-        var ne = document.getElementById('l-name-' + lId);
-        var ge = document.getElementById('l-geb-' + lId);
-        var ke = document.getElementById('l-fskl-' + lId);
-        if(r.name && ne && !ne.value){ ne.value = r.name; ne.classList.add('hi'); filled.push('Name'); }
-        if(r.geb && ge && !ge.value){ ge.value = r.geb; ge.classList.add('hi'); filled.push('Geburtsdatum'); }
-        if(r.fskl && ke && !ke.value){ ke.value = r.fskl; ke.classList.add('hi'); filled.push('FS-Klasse'); }
-        saveL(lId);
-        if(filled.length){ showBadge('l-fsob-'+lId, filled.join(', ')+' erkannt', true); toast('✅ FS: '+(r.name||'')); }
-        else showBadge('l-fsob-'+lId, 'Nicht lesbar – bitte manuell eintragen', true);
-      }
-      if(type === 'zul' && ocrW){
-        showBadge('l-zulob-' + lId, 'Zulassungsschein wird gelesen…');
-        var txt2 = await runOCR(b64);
-        var r2 = findZUL(txt2);
-        rmBadge('l-zulob-' + lId);
-        if(r2.kz){
-          var emptyFZ = FZ.find(function(f){ return !f.kz || !f.kz.trim(); });
-          if(emptyFZ){
-            var ke2 = document.getElementById('fz-kz-' + emptyFZ.id);
-            var me = document.getElementById('fz-marke-' + emptyFZ.id);
-            if(ke2 && !ke2.value){ ke2.value = r2.kz; ke2.classList.add('hi'); }
-            if(r2.marke && me && !me.value){ me.value = r2.marke; me.classList.add('hi'); }
-            saveFZ(emptyFZ.id);
+      ensureOCRDiv();
+      if (type === 'fs') {
+        showBdg('l-fsob-' + lId, 'Fuehrerschein wird gelesen...');
+        runOCR(b64, function(txt) {
+          var r = parseFS(txt);
+          var filled = [];
+          var ne = document.getElementById('l-name-' + lId);
+          var ge = document.getElementById('l-geb-' + lId);
+          var ke = document.getElementById('l-fskl-' + lId);
+          if (r.name && ne && !ne.value) { ne.value = r.name; ne.classList.add('hi'); filled.push('Name'); }
+          if (r.geb && ge && !ge.value) { ge.value = r.geb; ge.classList.add('hi'); filled.push('Geb.datum'); }
+          if (r.fskl && ke && !ke.value) { ke.value = r.fskl; ke.classList.add('hi'); filled.push('FS-Klasse'); }
+          saveL(lId);
+          if (filled.length) {
+            showBdg('l-fsob-' + lId, filled.join(', ') + ' erkannt', true);
+            toast('FS: ' + (r.name || 'erkannt'));
+          } else {
+            showBdg('l-fsob-' + lId, '', false, true);
           }
-        }
-        saveL(lId);
-        var msg = [r2.kz, r2.marke].filter(Boolean).join(' · ');
-        if(msg){ showBadge('l-zulob-'+lId, msg+' erkannt', true); toast('✅ Zulassung: '+msg); }
-        else showBadge('l-zulob-'+lId, 'Nicht lesbar – bitte manuell eintragen', true);
+        });
+      }
+      if (type === 'zul') {
+        showBdg('l-zulob-' + lId, 'Zulassungsschein wird gelesen...');
+        runOCR(b64, function(txt) {
+          var r = parseZUL(txt);
+          if (r.kz) {
+            var emptyFZ = null;
+            for (var i = 0; i < FZ.length; i++) { if (!FZ[i].kz || !FZ[i].kz.trim()) { emptyFZ = FZ[i]; break; } }
+            if (emptyFZ) {
+              var ke2 = document.getElementById('fz-kz-' + emptyFZ.id);
+              var me = document.getElementById('fz-marke-' + emptyFZ.id);
+              if (ke2 && !ke2.value) { ke2.value = r.kz; ke2.classList.add('hi'); }
+              if (r.marke && me && !me.value) { me.value = r.marke; me.classList.add('hi'); }
+              saveFZ(emptyFZ.id);
+            }
+          }
+          saveL(lId);
+          var msg = [r.kz, r.marke].filter(Boolean).join(' / ');
+          if (msg) { showBdg('l-zulob-' + lId, msg + ' erkannt', true); toast('Zulassung: ' + msg); }
+          else showBdg('l-zulob-' + lId, '', false, true);
+        });
       }
     });
   };
   inp.click();
 }
 
-function addEP(){
+// ---- EXTRA PHOTOS ----
+function addEP() {
   var id = epc++;
   EP.push({ id: id, src: null });
   renderEP();
 }
-function renderEP(){
+function renderEP() {
   var el = document.getElementById('ep-grid');
-  el.innerHTML = EP.map(function(p, i){
-    return '<div class="pslot ' + (p.src ? 'has' : '') + '" onclick="capEP(' + p.id + ')" style="position:relative">'
-      + (p.src
-        ? '<img src="' + p.src + '"><button class="pdel" onclick="event.stopPropagation();EP.find(function(x){return x.id===' + p.id + ';}).src=null;renderEP()">✕</button>'
-        : '<div style="text-align:center;pointer-events:none"><div style="font-size:28px">📷</div><div class="plbl">Foto ' + (i+1) + '</div></div>')
-      + '</div>';
-  }).join('');
+  var html = '';
+  for (var i = 0; i < EP.length; i++) {
+    var p = EP[i];
+    if (p.src) {
+      html += '<div class="pslot has" style="position:relative"><img src="' + p.src + '">';
+      html += '<button class="pdel" onclick="EP.find(function(x){return x.id===' + p.id + ';}).src=null;renderEP()">x</button></div>';
+    } else {
+      html += '<div class="pslot" onclick="capEP(' + p.id + ')">';
+      html += '<div style="text-align:center;pointer-events:none"><div style="font-size:28px">&#x1F4F7;</div>';
+      html += '<div class="plbl">Foto ' + (i+1) + '</div></div></div>';
+    }
+  }
+  el.innerHTML = html;
 }
-function capEP(id){
+function capEP(id) {
   var inp = document.createElement('input');
   inp.type = 'file'; inp.accept = 'image/*'; inp.capture = 'environment';
-  inp.onchange = function(e){
-    var file = e.target.files[0]; if(!file) return;
-    compress(file, function(b64){ var p = EP.find(function(x){ return x.id === id; }); if(p) p.src = b64; renderEP(); });
+  inp.onchange = function(e) {
+    var file = e.target.files[0]; if (!file) return;
+    compressImg(file, function(b64) {
+      var p = EP.find(function(x) { return x.id === id; });
+      if (p) p.src = b64;
+      renderEP();
+    });
   };
   inp.click();
 }
 
-function collectOrt(){
+// ---- DATA ----
+function collectOrt() {
   return {
-    datum: document.getElementById('f-datum').value,
-    uhrzeit: document.getElementById('f-uhrzeit').value,
-    strasse: document.getElementById('f-strasse').value,
-    lat: document.getElementById('f-lat') ? document.getElementById('f-lat').value : '',
-    lon: document.getElementById('f-lon') ? document.getElementById('f-lon').value : '',
-    gem: document.getElementById('f-gem').value,
-    richtung: document.getElementById('f-richtung').value,
-    wetter: document.getElementById('f-wetter').value,
-    strverh: document.getElementById('f-strverh').value,
-    licht: document.getElementById('f-licht').value,
-    vmax: document.getElementById('f-vmax').value,
-    fahr: document.getElementById('f-fahr').value,
-    hergang: document.getElementById('f-hergang').value,
-    mass: document.getElementById('f-mass').value
+    datum:   gv('f-datum'),
+    uhrzeit: gv('f-uhrzeit'),
+    strasse: gv('f-strasse'),
+    lat:     gv('f-lat'),
+    lon:     gv('f-lon'),
+    gem:     gv('f-gem'),
+    richtung:gv('f-richtung'),
+    wetter:  gv('f-wetter'),
+    strverh: gv('f-strverh'),
+    licht:   gv('f-licht'),
+    vmax:    gv('f-vmax'),
+    fahr:    gv('f-fahr'),
+    hergang: gv('f-hergang'),
+    mass:    gv('f-mass')
   };
 }
 
-function saveData(){
-  FZ.forEach(function(fz){ saveFZ(fz.id); });
-  LE.forEach(function(l){ saveL(l.id); });
+function saveData() {
+  FZ.forEach(function(fz) { saveFZ(fz.id); });
+  LE.forEach(function(l) { saveL(l.id); });
   var data = { ort: collectOrt(), FZ: FZ, LE: LE, EP: EP, FZP: FZP, LEP: LEP };
   localStorage.setItem('unfall-d', JSON.stringify({ data: data, ts: Date.now() }));
-  toast('✓ Entwurf gespeichert');
+  toast('Entwurf gespeichert');
 }
 
-function loadSaved(){
+function loadSaved() {
   var s = localStorage.getItem('unfall-d');
-  if(!s){ alert('Kein Entwurf gefunden.'); return; }
-  var d = JSON.parse(s).data;
+  if (!s) { alert('Kein Entwurf gefunden.'); return; }
+  var saved = JSON.parse(s);
+  var d = saved.data;
   startApp();
-  setTimeout(function(){
+  setTimeout(function() {
     var o = d.ort || {};
-    var ids = ['datum','uhrzeit','strasse','lat','lon','gem','richtung','wetter','strverh','licht','vmax','fahr','hergang','mass'];
-    ids.forEach(function(k){ var el = document.getElementById('f-'+k); if(el && o[k]) el.value = o[k]; });
-    FZ = d.FZ || []; fzc = Math.max.apply(null, [0].concat(FZ.map(function(f){ return f.id; }))) + 1;
+    var keys = ['datum','uhrzeit','strasse','lat','lon','gem','richtung','wetter','strverh','licht','vmax','fahr','hergang','mass'];
+    for (var i = 0; i < keys.length; i++) { if (o[keys[i]]) sv('f-' + keys[i], o[keys[i]]); }
+    if (o.lat && o.lon) {
+      document.getElementById('gps-box').style.display = 'block';
+      document.getElementById('gps-disp').textContent = o.lat + ', ' + o.lon;
+      document.getElementById('gps-link').href = 'https://maps.google.com/?q=' + o.lat + ',' + o.lon;
+    }
+    FZ = d.FZ || []; fzc = 1;
+    for (var j = 0; j < FZ.length; j++) { if (FZ[j].id >= fzc) fzc = FZ[j].id + 1; }
     FZP = d.FZP || {};
-    LE = d.LE || []; lc = Math.max.apply(null, [0].concat(LE.map(function(l){ return l.id; }))) + 1;
+    LE = d.LE || []; lc = 1;
+    for (var k = 0; k < LE.length; k++) { if (LE[k].id >= lc) lc = LE[k].id + 1; }
     LEP = d.LEP || {};
     EP = d.EP || [];
     renderFZ(); renderL(); renderEP();
-    // Restore GPS box if coords exist
-    var lat = document.getElementById('f-lat'), lon = document.getElementById('f-lon');
-    if(lat && lat.value && lon && lon.value){
-      var gpsBox = document.getElementById('gps-box');
-      var coordsDisplay = document.getElementById('gps-coords-display');
-      var mapsLink = document.getElementById('gmaps-link');
-      if(gpsBox) gpsBox.style.display = 'block';
-      if(coordsDisplay) coordsDisplay.textContent = lat.value + ', ' + lon.value;
-      if(mapsLink) mapsLink.href = 'https://maps.google.com/?q=' + lat.value + ',' + lon.value;
-    }
-    toast('✓ Entwurf geladen');
+    toast('Entwurf geladen');
   }, 200);
 }
 
-function buildSummary(){
-  FZ.forEach(function(fz){ saveFZ(fz.id); });
-  LE.forEach(function(l){ saveL(l.id); });
+// ---- SUMMARY ----
+function buildSummary() {
+  FZ.forEach(function(fz) { saveFZ(fz.id); });
+  LE.forEach(function(l) { saveL(l.id); });
   var o = collectOrt();
-  var html = '<div class="sec" style="border-color:var(--acc-b)">'
-    + '<div class="sec-hdr"><div class="sec-ico">📍</div><div><div class="sec-ttl">Unfallort & Zeit</div></div></div>'
-    + '<div class="srow"><span class="sl">Datum</span><span class="sv">'+(o.datum||'–')+'</span></div>'
-    + '<div class="srow"><span class="sl">Uhrzeit</span><span class="sv">'+(o.uhrzeit||'–')+'</span></div>'
-    + '<div class="srow"><span class="sl">Straße</span><span class="sv">'+(o.strasse||'–')+'</span></div>'
-    + '<div class="srow"><span class="sl">Gemeinde</span><span class="sv">'+o.gem+'</span></div>'
-    + (o.lat ? '<div class="srow"><span class="sl">GPS</span><span class="sv"><div style="font-family:monospace;font-size:13px;margin-bottom:4px">'+o.lat+', '+o.lon+'</div><a href="https://maps.google.com/?q='+o.lat+','+o.lon+'" target="_blank" style="display:inline-flex;align-items:center;gap:5px;background:rgba(26,95,255,.1);border:1.5px solid rgba(26,95,255,.2);color:var(--blu);border-radius:6px;padding:5px 10px;font-size:12px;font-weight:700;text-decoration:none">🗺️ Google Maps</a></span></div>' : '')
-    + '<div class="srow"><span class="sl">Wetter</span><span class="sv">'+o.wetter+'</span></div>'
-    + '</div>';
+  var mapsUrl = (o.lat && o.lon) ? ('https://maps.google.com/?q=' + o.lat + ',' + o.lon) : '';
 
-  FZ.forEach(function(fz, i){
+  var html = '<div class="sec" style="border-color:var(--acc-b)">';
+  html += '<div class="sec-hdr"><div class="sec-ico">&#x1F4CD;</div><div><div class="sec-ttl">Unfallort &amp; Zeit</div></div></div>';
+  html += '<div class="srow"><span class="sl">Datum</span><span class="sv">' + (o.datum || '-') + '</span></div>';
+  html += '<div class="srow"><span class="sl">Uhrzeit</span><span class="sv">' + (o.uhrzeit || '-') + '</span></div>';
+  html += '<div class="srow"><span class="sl">Strasse</span><span class="sv">' + (o.strasse || '-') + '</span></div>';
+  html += '<div class="srow"><span class="sl">Gemeinde</span><span class="sv">' + o.gem + '</span></div>';
+  if (o.lat && o.lon) {
+    html += '<div class="srow"><span class="sl">GPS</span><span class="sv">';
+    html += '<div style="font-family:monospace;font-size:13px;margin-bottom:4px">' + o.lat + ', ' + o.lon + '</div>';
+    html += '<a href="' + mapsUrl + '" target="_blank" style="display:inline-flex;align-items:center;gap:5px;background:var(--blu-bg);border:1.5px solid var(--blu-b);color:var(--blu);border-radius:6px;padding:5px 10px;font-size:12px;font-weight:700;text-decoration:none">&#x1F5FA;&#xFE0F; Google Maps</a>';
+    html += '</span></div>';
+  }
+  html += '<div class="srow"><span class="sl">Wetter</span><span class="sv">' + o.wetter + '</span></div>';
+  html += '</div>';
+
+  for (var i = 0; i < FZ.length; i++) {
+    var fz = FZ[i];
     var ps = FZP[fz.id] || [];
-    html += '<div class="sec"><div class="sec-hdr"><div class="sec-ico">'+(i===0?'🚗':'🚙')+'</div>'
-      + '<div><div class="sec-ttl">Fahrzeug '+(i+1)+': '+(fz.kz||'–')+'</div></div></div>'
-      + '<div class="srow"><span class="sl">Typ</span><span class="sv">'+(fz.typ||'–')+'</span></div>'
-      + '<div class="srow"><span class="sl">Kennzeichen</span><span class="sv">'+(fz.kz||'–')+'</span></div>'
-      + '<div class="srow"><span class="sl">Fahrzeug</span><span class="sv">'+([fz.farbe,fz.marke,fz.modell].filter(Boolean).join(' ')||'–')+'</span></div>'
-      + '<div class="srow"><span class="sl">Schaden</span><span class="sv">'+(fz.schaden||'–')+'</span></div>'
-      + (ps.length ? '<div class="simgs">'+ps.map(function(s){ return '<img src="'+s+'">'; }).join('')+'</div>' : '')
-      + '</div>';
-  });
-
-  LE.forEach(function(l, i){
-    var fi = FZ.findIndex(function(f){ return String(f.id) === String(l.fzId); });
-    var lp = LEP[l.id] || {};
-    html += '<div class="sec"><div class="sec-hdr"><div class="sec-ico">👤</div>'
-      + '<div><div class="sec-ttl">Lenker '+(i+1)+': '+(l.name||'–')+'</div>'
-      + '<div class="sec-sub">'+(fi >= 0 ? 'Fahrzeug '+(fi+1) : '')+'</div></div></div>'
-      + '<div class="srow"><span class="sl">Name</span><span class="sv">'+(l.name||'–')+'</span></div>'
-      + '<div class="srow"><span class="sl">Geburtsdatum</span><span class="sv">'+(l.geb||'–')+'</span></div>'
-      + '<div class="srow"><span class="sl">Adresse</span><span class="sv">'+(l.adr||'–')+'</span></div>'
-      + '<div class="srow"><span class="sl">FS-Klasse</span><span class="sv">'+(l.fskl||'–')+'</span></div>'
-      + '<div class="srow"><span class="sl">Versicherung</span><span class="sv">'+(l.vers||'–')+'</span></div>'
-      + '<div style="display:flex;gap:6px;margin-top:8px">'
-      + (lp.fs ? '<img src="'+lp.fs+'" style="flex:1;aspect-ratio:16/10;object-fit:cover;border-radius:8px;border:2px solid var(--ok)">' : '')
-      + (lp.zul ? '<img src="'+lp.zul+'" style="flex:1;aspect-ratio:16/10;object-fit:cover;border-radius:8px;border:2px solid var(--blu)">' : '')
-      + '</div></div>';
-  });
-
-  var ep = EP.filter(function(p){ return p.src; });
-  if(ep.length){
-    html += '<div class="sec"><div class="sec-hdr"><div class="sec-ico">📷</div><div><div class="sec-ttl">Unfallfotos ('+ep.length+')</div></div></div>'
-      + '<div class="simgs">'+ep.map(function(p){ return '<img src="'+p.src+'">'; }).join('')+'</div></div>';
+    html += '<div class="sec">';
+    html += '<div class="sec-hdr"><div class="sec-ico">&#x1F697;</div><div><div class="sec-ttl">Fahrzeug ' + (i+1) + ': ' + (fz.kz || '-') + '</div></div></div>';
+    html += '<div class="srow"><span class="sl">Typ</span><span class="sv">' + (fz.typ || '-') + '</span></div>';
+    html += '<div class="srow"><span class="sl">Kennzeichen</span><span class="sv">' + (fz.kz || '-') + '</span></div>';
+    html += '<div class="srow"><span class="sl">Fahrzeug</span><span class="sv">' + ([fz.farbe, fz.marke, fz.modell].filter(Boolean).join(' ') || '-') + '</span></div>';
+    html += '<div class="srow"><span class="sl">Schaden</span><span class="sv">' + (fz.schaden || '-') + '</span></div>';
+    if (ps.length) {
+      html += '<div class="simgs">';
+      for (var pi = 0; pi < ps.length; pi++) html += '<img src="' + ps[pi] + '">';
+      html += '</div>';
+    }
+    html += '</div>';
   }
 
-  var total = Object.values(FZP).flat().length
-    + Object.values(LEP).flatMap(function(p){ return [p.fs, p.zul]; }).filter(Boolean).length
-    + ep.length;
-  html += '<div class="ibox a">📊 '+FZ.length+' Fahrzeug(e) · '+LE.length+' Lenker · '+total+' Foto(s)</div>';
+  for (var li = 0; li < LE.length; li++) {
+    var l = LE[li];
+    var fi = -1;
+    for (var fi2 = 0; fi2 < FZ.length; fi2++) { if (String(FZ[fi2].id) === String(l.fzId)) { fi = fi2; break; } }
+    var lp = LEP[l.id] || {};
+    html += '<div class="sec">';
+    html += '<div class="sec-hdr"><div class="sec-ico">&#x1F464;</div>';
+    html += '<div><div class="sec-ttl">Lenker ' + (li+1) + ': ' + (l.name || '-') + '</div>';
+    if (fi >= 0) html += '<div class="sec-sub">Fahrzeug ' + (fi+1) + '</div>';
+    html += '</div></div>';
+    html += '<div class="srow"><span class="sl">Name</span><span class="sv">' + (l.name || '-') + '</span></div>';
+    html += '<div class="srow"><span class="sl">Geburtsdatum</span><span class="sv">' + (l.geb || '-') + '</span></div>';
+    html += '<div class="srow"><span class="sl">Adresse</span><span class="sv">' + (l.adr || '-') + '</span></div>';
+    html += '<div class="srow"><span class="sl">Telefon</span><span class="sv">' + (l.tel || '-') + '</span></div>';
+    html += '<div class="srow"><span class="sl">FS-Klasse</span><span class="sv">' + (l.fskl || '-') + '</span></div>';
+    html += '<div class="srow"><span class="sl">Versicherung</span><span class="sv">' + (l.vers || '-') + '</span></div>';
+    html += '<div style="display:flex;gap:6px;margin-top:8px">';
+    if (lp.fs) html += '<img src="' + lp.fs + '" style="flex:1;aspect-ratio:16/10;object-fit:cover;border-radius:8px;border:2px solid var(--ok)">';
+    if (lp.zul) html += '<img src="' + lp.zul + '" style="flex:1;aspect-ratio:16/10;object-fit:cover;border-radius:8px;border:2px solid var(--blu)">';
+    html += '</div></div>';
+  }
+
+  var epList = EP.filter(function(p) { return p.src; });
+  if (epList.length) {
+    html += '<div class="sec"><div class="sec-hdr"><div class="sec-ico">&#x1F4F7;</div>';
+    html += '<div><div class="sec-ttl">Unfallfotos (' + epList.length + ')</div></div></div>';
+    html += '<div class="simgs">';
+    for (var epi = 0; epi < epList.length; epi++) html += '<img src="' + epList[epi].src + '">';
+    html += '</div></div>';
+  }
+
+  var totalPics = 0;
+  for (var fpi = 0; fpi < FZ.length; fpi++) totalPics += (FZP[FZ[fpi].id] || []).length;
+  for (var lei = 0; lei < LE.length; lei++) {
+    var lpe = LEP[LE[lei].id] || {};
+    if (lpe.fs) totalPics++;
+    if (lpe.zul) totalPics++;
+  }
+  totalPics += epList.length;
+
+  html += '<div class="ibox a">Zusammenfassung: ' + FZ.length + ' Fahrzeug(e) - ' + LE.length + ' Lenker - ' + totalPics + ' Foto(s)</div>';
   document.getElementById('summary').innerHTML = html;
 }
 
-async function buildPDF(){
+// ---- PDF ----
+function buildPDF() {
   var jsPDF = window.jspdf.jsPDF;
-  var doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+  var doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
   var W = 210, mg = 15, cw = W - mg * 2;
   var y = mg;
 
-  doc.setFillColor(13,20,32); doc.rect(0,0,W,28,'F');
-  doc.setTextColor(255,255,255); doc.setFontSize(16); doc.setFont('helvetica','bold');
-  doc.text('PI Telfs · Verkehrsunfall Sachschaden', mg, 12);
-  doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.setTextColor(150,170,200);
-  doc.text('LPD Tirol · Erstellt: ' + new Date().toLocaleString('de-AT'), mg, 20);
+  doc.setFillColor(13, 20, 32); doc.rect(0, 0, W, 28, 'F');
+  doc.setTextColor(255, 255, 255); doc.setFontSize(16); doc.setFont('helvetica', 'bold');
+  doc.text('PI Telfs - Verkehrsunfall Sachschaden', mg, 12);
+  doc.setFontSize(9); doc.setFont('helvetica', 'normal'); doc.setTextColor(150, 170, 200);
+  doc.text('LPD Tirol - Erstellt: ' + new Date().toLocaleString('de-AT'), mg, 20);
   y = 35;
 
-  function chk(){ if(y > 270){ doc.addPage(); y = mg; } }
-  function sec(t){ chk(); doc.setFillColor(240,244,248); doc.rect(mg,y,cw,7,'F'); doc.setTextColor(13,20,32); doc.setFontSize(10); doc.setFont('helvetica','bold'); doc.text(t, mg+3, y+5); y += 10; }
-  function row(lbl, val){ chk(); doc.setFontSize(9); doc.setFont('helvetica','bold'); doc.setTextColor(100,120,150); doc.text(lbl, mg, y); doc.setFont('helvetica','normal'); doc.setTextColor(13,20,32); var ls = doc.splitTextToSize(val||'–', cw-55); doc.text(ls, mg+55, y); y += 5*ls.length+1; }
-  function img(b64, lbl){ if(!b64) return; chk(); try{ doc.addImage(b64,'JPEG',mg,y,80,50); doc.setFontSize(8); doc.setTextColor(100,120,150); doc.text(lbl||'', mg, y+54); y += 58; } catch(e){} }
+  function chk() { if (y > 270) { doc.addPage(); y = mg; } }
+  function sec(t) {
+    chk();
+    doc.setFillColor(240, 244, 248); doc.rect(mg, y, cw, 7, 'F');
+    doc.setTextColor(13, 20, 32); doc.setFontSize(10); doc.setFont('helvetica', 'bold');
+    doc.text(t, mg + 3, y + 5); y += 10;
+  }
+  function row(lbl, val) {
+    chk();
+    doc.setFontSize(9); doc.setFont('helvetica', 'bold'); doc.setTextColor(100, 120, 150);
+    doc.text(lbl, mg, y);
+    doc.setFont('helvetica', 'normal'); doc.setTextColor(13, 20, 32);
+    var ls = doc.splitTextToSize(val || '-', cw - 55);
+    doc.text(ls, mg + 55, y); y += 5 * ls.length + 1;
+  }
+  function addImg(b64, lbl) {
+    if (!b64) return; chk();
+    try {
+      doc.addImage(b64, 'JPEG', mg, y, 80, 50);
+      doc.setFontSize(8); doc.setTextColor(100, 120, 150);
+      if (lbl) doc.text(lbl, mg, y + 54);
+      y += 58;
+    } catch(e) {}
+  }
 
-  FZ.forEach(function(fz){ saveFZ(fz.id); });
-  LE.forEach(function(l){ saveL(l.id); });
+  FZ.forEach(function(fz) { saveFZ(fz.id); });
+  LE.forEach(function(l) { saveL(l.id); });
   var o = collectOrt();
 
-  sec('1. UNFALLORT & VERHÄLTNISSE');
-  row('Datum:', o.datum); row('Uhrzeit:', o.uhrzeit); row('Straße:', o.strasse);
+  sec('1. UNFALLORT UND VERHAELTNISSE');
+  row('Datum:', o.datum); row('Uhrzeit:', o.uhrzeit); row('Strasse:', o.strasse);
   row('Gemeinde:', o.gem); row('Richtung / KM:', o.richtung);
-  if(o.lat && o.lon){
+  if (o.lat && o.lon) {
     row('GPS-Koordinaten:', o.lat + ', ' + o.lon + ' (WGS84)');
-    row('Google Maps Link:', 'maps.google.com/?q=' + o.lat + ',' + o.lon);
+    row('Google Maps:', 'maps.google.com/?q=' + o.lat + ',' + o.lon);
   }
-  row('Wetter:', o.wetter); row('Straßenzustand:', o.strverh); row('Licht:', o.licht);
-  row('Höchstgeschw.:', o.vmax); row('Fahrtrichtung:', o.fahr);
-  if(o.hergang){ chk(); doc.setFontSize(9); doc.setFont('helvetica','bold'); doc.setTextColor(100,120,150); doc.text('Hergang:',mg,y); y+=5; doc.setFont('helvetica','normal'); doc.setTextColor(13,20,32); var lh=doc.splitTextToSize(o.hergang,cw); doc.text(lh,mg,y); y+=lh.length*5+2; }
-  if(o.mass){ chk(); doc.setFontSize(9); doc.setFont('helvetica','bold'); doc.setTextColor(100,120,150); doc.text('Maßnahmen:',mg,y); y+=5; doc.setFont('helvetica','normal'); doc.setTextColor(13,20,32); var lm=doc.splitTextToSize(o.mass,cw); doc.text(lm,mg,y); y+=lm.length*5+4; }
+  row('Wetter:', o.wetter); row('Strassenzustand:', o.strverh); row('Licht:', o.licht);
+  row('Hoechstgeschwindigkeit:', o.vmax); row('Fahrtrichtung Fzg.1:', o.fahr);
+  if (o.hergang) {
+    chk();
+    doc.setFontSize(9); doc.setFont('helvetica', 'bold'); doc.setTextColor(100, 120, 150);
+    doc.text('Hergang:', mg, y); y += 5;
+    doc.setFont('helvetica', 'normal'); doc.setTextColor(13, 20, 32);
+    var lh = doc.splitTextToSize(o.hergang, cw);
+    doc.text(lh, mg, y); y += lh.length * 5 + 2;
+  }
+  if (o.mass) {
+    chk();
+    doc.setFontSize(9); doc.setFont('helvetica', 'bold'); doc.setTextColor(100, 120, 150);
+    doc.text('Massnahmen:', mg, y); y += 5;
+    doc.setFont('helvetica', 'normal'); doc.setTextColor(13, 20, 32);
+    var lm = doc.splitTextToSize(o.mass, cw);
+    doc.text(lm, mg, y); y += lm.length * 5 + 4;
+  }
 
-  FZ.forEach(function(fz, i){
-    sec('2.'+(i+1)+' FAHRZEUG '+(i+1));
+  for (var fi = 0; fi < FZ.length; fi++) {
+    var fz = FZ[fi];
+    sec('2.' + (fi+1) + ' FAHRZEUG ' + (fi+1));
     row('Typ:', fz.typ); row('Kennzeichen:', fz.kz); row('Farbe:', fz.farbe);
-    row('Marke / Modell:', [fz.marke,fz.modell].filter(Boolean).join(' '));
-    if(fz.schaden){ chk(); doc.setFontSize(9); doc.setFont('helvetica','bold'); doc.setTextColor(100,120,150); doc.text('Schaden:',mg,y); y+=5; doc.setFont('helvetica','normal'); doc.setTextColor(13,20,32); var ls=doc.splitTextToSize(fz.schaden,cw); doc.text(ls,mg,y); y+=ls.length*5+2; }
-    (FZP[fz.id]||[]).forEach(function(src, pi){ img(src, 'Fahrzeug '+(i+1)+' – Foto '+(pi+1)); });
-  });
+    row('Marke / Modell:', [fz.marke, fz.modell].filter(Boolean).join(' '));
+    if (fz.schaden) {
+      chk();
+      doc.setFontSize(9); doc.setFont('helvetica', 'bold'); doc.setTextColor(100, 120, 150);
+      doc.text('Schaden:', mg, y); y += 5;
+      doc.setFont('helvetica', 'normal'); doc.setTextColor(13, 20, 32);
+      var ls2 = doc.splitTextToSize(fz.schaden, cw);
+      doc.text(ls2, mg, y); y += ls2.length * 5 + 2;
+    }
+    var fps = FZP[fz.id] || [];
+    for (var fpi = 0; fpi < fps.length; fpi++) {
+      addImg(fps[fpi], 'Fahrzeug ' + (fi+1) + ' - Foto ' + (fpi+1));
+    }
+  }
 
-  LE.forEach(function(l, i){
-    sec('3.'+(i+1)+' LENKER '+(i+1));
+  for (var li = 0; li < LE.length; li++) {
+    var l = LE[li];
+    sec('3.' + (li+1) + ' LENKER ' + (li+1));
     row('Name:', l.name); row('Geburtsdatum:', l.geb); row('Adresse:', l.adr);
     row('Telefon:', l.tel); row('FS-Klasse:', l.fskl); row('FS ausgestellt:', l.fsdat);
     row('Versicherung:', l.vers);
-    var lp = LEP[l.id] || {};
-    if(lp.fs) img(lp.fs, 'Führerschein Lenker '+(i+1));
-    if(lp.zul) img(lp.zul, 'Zulassungsschein Lenker '+(i+1));
-  });
+    var lpe = LEP[l.id] || {};
+    if (lpe.fs) addImg(lpe.fs, 'Fuehrerschein Lenker ' + (li+1));
+    if (lpe.zul) addImg(lpe.zul, 'Zulassungsschein Lenker ' + (li+1));
+  }
 
-  var ep = EP.filter(function(p){ return p.src; });
-  if(ep.length){ sec('4. UNFALLFOTOS'); ep.forEach(function(p, i){ img(p.src, 'Unfallstelle – Foto '+(i+1)); }); }
+  var epList = EP.filter(function(p) { return p.src; });
+  if (epList.length) {
+    sec('4. UNFALLFOTOS');
+    for (var epi = 0; epi < epList.length; epi++) {
+      addImg(epList[epi].src, 'Unfallstelle - Foto ' + (epi+1));
+    }
+  }
 
   var pages = doc.getNumberOfPages();
-  for(var i = 1; i <= pages; i++){
-    doc.setPage(i);
-    doc.setFontSize(8); doc.setTextColor(150,160,180);
-    doc.text('PI Telfs · Unfallprotokoll · Seite '+i+'/'+pages, mg, 290);
-    doc.text(new Date().toLocaleDateString('de-AT'), W-mg, 290, { align:'right' });
+  for (var pg = 1; pg <= pages; pg++) {
+    doc.setPage(pg);
+    doc.setFontSize(8); doc.setTextColor(150, 160, 180);
+    doc.text('PI Telfs - Unfallprotokoll - Seite ' + pg + '/' + pages, mg, 290);
+    doc.text(new Date().toLocaleDateString('de-AT'), W - mg, 290, { align: 'right' });
   }
   return doc;
 }
 
-async function exportPDF(){
-  toast('⏳ PDF wird erstellt…');
-  try{
-    var doc = await buildPDF();
-    var o = collectOrt();
-    var prefix = ('Unfall_' + (o.datum||lDate()) + '_' + (o.strasse||'PI-Telfs')).replace(/[^a-zA-Z0-9_\-]/g, '_');
-    var fname = prefix + '.pdf';
-    var blob = doc.output('blob');
-    var url = URL.createObjectURL(blob);
-    var a = document.createElement('a'); a.href = url; a.download = fname; a.click();
-    var mail = document.getElementById('f-mail').value;
-    if(mail && mail.indexOf('@') > 0){
-      setTimeout(function(){
-        var subj = encodeURIComponent('Unfallprotokoll Sachschaden ' + o.datum + ' ' + o.strasse);
-        var body = encodeURIComponent('Sehr geehrte Kolleginnen und Kollegen,\n\nanbei das Unfallprotokoll (Sachschaden) vom ' + o.datum + ' um ' + o.uhrzeit + ' Uhr, Ort: ' + o.strasse + ', ' + o.gem + '.\n\nMit freundlichen Grüßen\nPI Telfs');
-        window.location.href = 'mailto:' + mail + '?subject=' + subj + '&body=' + body;
-        toast('✓ PDF + Fotos gespeichert · Mail-App geöffnet');
-      }, 800);
-      setTimeout(function(){ downloadAllPhotos(prefix); }, 400);
-    } else {
-      toast('✓ PDF + Fotos werden heruntergeladen…');
-      downloadAllPhotos(prefix);
+function getAllPhotos(prefix) {
+  var list = [];
+  for (var fi = 0; fi < FZ.length; fi++) {
+    var fps = FZP[FZ[fi].id] || [];
+    for (var fpi = 0; fpi < fps.length; fpi++) {
+      list.push({ src: fps[fpi], name: prefix + '_Fzg' + (fi+1) + '_Foto' + (fpi+1) + '.jpg' });
     }
-  } catch(e){ console.error(e); alert('PDF-Fehler: ' + e.message); }
+  }
+  for (var li = 0; li < LE.length; li++) {
+    var lpe = LEP[LE[li].id] || {};
+    if (lpe.fs) list.push({ src: lpe.fs, name: prefix + '_Lenker' + (li+1) + '_Fuehrerschein.jpg' });
+    if (lpe.zul) list.push({ src: lpe.zul, name: prefix + '_Lenker' + (li+1) + '_Zulassung.jpg' });
+  }
+  var epList = EP.filter(function(p) { return p.src; });
+  for (var ei = 0; ei < epList.length; ei++) {
+    list.push({ src: epList[ei].src, name: prefix + '_Unfall_Foto' + (ei+1) + '.jpg' });
+  }
+  return list;
 }
 
-async function exportOnly(){
-  toast('⏳ PDF wird erstellt…');
-  try{
-    var doc = await buildPDF();
+function doExport(openMail) {
+  toast('PDF wird erstellt...');
+  try {
+    var doc = buildPDF();
     var o = collectOrt();
-    var fname = ('Unfall_' + (o.datum||lDate()) + '_' + (o.strasse||'PI-Telfs') + '.pdf').replace(/[^a-zA-Z0-9_\-.]/g, '_');
-    doc.save(fname);
-    toast('✓ PDF gespeichert');
-  } catch(e){ alert('PDF-Fehler: ' + e.message); }
+    var prefix = ('Unfall_' + (o.datum || lDate()) + '_' + (o.strasse || 'PI-Telfs')).replace(/[^a-zA-Z0-9_\-]/g, '_');
+
+    // Download PDF
+    doc.save(prefix + '.pdf');
+
+    // Download all photos with delay
+    var photos = getAllPhotos(prefix);
+    for (var i = 0; i < photos.length; i++) {
+      (function(ph, delay) {
+        setTimeout(function() {
+          var a = document.createElement('a');
+          a.href = ph.src; a.download = ph.name; a.click();
+        }, delay);
+      })(photos[i], (i + 1) * 500);
+    }
+
+    var totalFiles = 1 + photos.length;
+    toast(totalFiles + ' Datei(en) werden gespeichert...');
+
+    if (openMail) {
+      var mail = gv('f-mail');
+      if (mail && mail.indexOf('@') > 0) {
+        setTimeout(function() {
+          var subj = encodeURIComponent('Unfallprotokoll Sachschaden ' + o.datum + ' ' + o.strasse);
+          var bodyTxt = 'Sehr geehrte Kolleginnen und Kollegen,\n\n'
+            + 'anbei das Unfallprotokoll (Sachschaden) vom ' + o.datum + ' um ' + o.uhrzeit + ' Uhr.\n\n'
+            + 'Unfallort: ' + o.strasse + ', ' + o.gem + '\n'
+            + (o.lat ? 'GPS: maps.google.com/?q=' + o.lat + ',' + o.lon + '\n' : '')
+            + '\nFolgende Dateien befinden sich im Downloads-Ordner und muessen manuell angehaengt werden:\n'
+            + '- ' + prefix + '.pdf (Unfallprotokoll)\n'
+            + (photos.length > 0 ? '- ' + photos.length + ' Foto(s) als JPG\n' : '')
+            + '\nMit freundlichen Gruessen\nPI Telfs';
+          window.location.href = 'mailto:' + mail + '?subject=' + subj + '&body=' + encodeURIComponent(bodyTxt);
+        }, (photos.length + 1) * 500 + 500);
+      } else {
+        alert('Bitte zuerst eine gueltige E-Mail-Adresse eintragen.');
+      }
+    }
+  } catch(e) {
+    console.error(e);
+    alert('Fehler beim Export: ' + e.message);
+  }
 }
 
-function toast(msg){
+// ---- CRYPTSHARE UPLOAD ----
+var CS_URL = 'https://cryptshare.bmi.gv.at';
+var CS_HEADERS = { 'X-CS-MajorApiVersion': '1', 'X-CS-MinorApiVersion': '15', 'Content-Type': 'application/json' };
+var csVerToken = null;
+var csTrackingId = null;
+var csResultLink = null;
+
+function csReset() {
+  csVerToken = null; csTrackingId = null; csResultLink = null;
+  ['cs-step1','cs-step2','cs-step3','cs-step4','cs-cors-err'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.style.display = (id === 'cs-step1') ? 'block' : 'none';
+  });
+  sv('cs-otp', '');
+}
+
+function csSetProgress(pct, statusTxt, detailTxt, iconTxt) {
+  if (iconTxt) document.getElementById('cs-icon').textContent = iconTxt;
+  if (statusTxt) document.getElementById('cs-status').textContent = statusTxt;
+  if (detailTxt !== undefined) document.getElementById('cs-detail').textContent = detailTxt;
+  document.getElementById('cs-progress-fill').style.width = pct + '%';
+}
+
+async function csAPI(method, path, body) {
+  var opts = { method: method, headers: Object.assign({}, CS_HEADERS) };
+  if (body !== undefined) opts.body = JSON.stringify(body);
+  var resp = await fetch(CS_URL + path, opts);
+  if (!resp.ok) {
+    var err = await resp.json().catch(function() { return {}; });
+    throw new Error('API Fehler ' + resp.status + ': ' + (err.errorMessage || JSON.stringify(err)));
+  }
+  var ct = resp.headers.get('content-type') || '';
+  if (ct.indexOf('application/json') >= 0) return resp.json();
+  return resp;
+}
+
+async function csRequestOTP() {
+  var sender = gv('cs-sender').trim();
+  if (!sender || sender.indexOf('@') < 0) { alert('Bitte Absender-Dienstmail eintragen!'); return; }
+  try {
+    // Check if already verified (cookie-based)
+    await csAPI('GET', '/api/users/' + encodeURIComponent(sender) + '/verification');
+    // Already verified - skip OTP
+    csVerToken = 'pre-verified';
+    document.getElementById('cs-step1').style.display = 'none';
+    document.getElementById('cs-step2').style.display = 'none';
+    csVerifyAndUpload();
+    return;
+  } catch(e) { /* not yet verified, continue */ }
+
+  try {
+    await csAPI('POST', '/api/users/' + encodeURIComponent(sender) + '/verification', {});
+    document.getElementById('cs-step1').style.display = 'none';
+    document.getElementById('cs-step2').style.display = 'block';
+    toast('OTP wurde an ' + sender + ' gesendet');
+  } catch(e) {
+    console.error('OTP request error:', e);
+    if (e.message.indexOf('Failed to fetch') >= 0 || e.message.indexOf('NetworkError') >= 0) {
+      document.getElementById('cs-cors-err').style.display = 'block';
+    } else {
+      alert('Fehler beim OTP-Anfordern: ' + e.message);
+    }
+  }
+}
+
+async function csVerifyAndUpload() {
+  var sender = gv('cs-sender').trim();
+  var recipient = gv('cs-recipient').trim();
+  var otp = gv('cs-otp').trim();
+
+  if (!recipient || recipient.indexOf('@') < 0) { alert('Bitte Empfaenger-Mail eintragen!'); return; }
+
+  document.getElementById('cs-step2').style.display = 'none';
+  document.getElementById('cs-step3').style.display = 'block';
+  csSetProgress(5, 'Verifizierung...', '', 'ὑ2');
+
+  try {
+    // Verify OTP (skip if pre-verified)
+    if (csVerToken !== 'pre-verified' && otp) {
+      await csAPI('POST', '/api/users/' + encodeURIComponent(sender) + '/verification/' + encodeURIComponent(otp), {});
+    }
+    csSetProgress(10, 'PDF wird erstellt...', '', 'Ὄ4');
+
+    // Build PDF
+    FZ.forEach(function(fz) { saveFZ(fz.id); });
+    LE.forEach(function(l) { saveL(l.id); });
+    var o = collectOrt();
+    var prefix = ('Unfall_' + (o.datum || lDate()) + '_' + (o.strasse || 'PI-Telfs')).replace(/[^a-zA-Z0-9_\-]/g, '_');
+    var doc = buildPDF();
+    var pdfBlob = doc.output('blob');
+    csSetProgress(20, 'ZIP wird erstellt...', '', '὎6');
+
+    // Build ZIP
+    var zip = new JSZip();
+    var folder = zip.folder(prefix);
+    folder.file(prefix + '.pdf', pdfBlob);
+    var photos = getAllPhotos(prefix);
+    for (var i = 0; i < photos.length; i++) {
+      folder.file(photos[i].name, photos[i].src.split(',')[1], { base64: true });
+    }
+    var zipBlob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE',
+      onUpdate: function(meta) {
+        csSetProgress(20 + meta.percent * 0.15, 'ZIP wird komprimiert...', Math.round(meta.percent) + '%');
+      }
+    });
+    var sizeMB = (zipBlob.size / 1024 / 1024).toFixed(1);
+    csSetProgress(35, 'Transfer wird erstellt...', 'ZIP: ' + sizeMB + ' MB', '☁️');
+
+    // Create transfer session
+    var expiry = new Date();
+    expiry.setDate(expiry.getDate() + 30);
+    var session = await csAPI('POST', '/api/users/' + encodeURIComponent(sender) + '/transfer-sessions', {
+      transferSettings: {
+        expirationDate: expiry.toISOString().split('T')[0],
+        subject: 'Unfallprotokoll Sachschaden ' + o.datum + ' ' + (o.strasse || ''),
+        notificationMessage: 'Bitte das Unfallprotokoll herunterladen.',
+        recipients: [{ emailAddress: recipient }],
+        sendEmail: true
+      }
+    });
+    csTrackingId = session.trackingId || (session.data && session.data.trackingId);
+    csSetProgress(45, 'Datei wird registriert...', '');
+
+    // Register file
+    var fileReg = await csAPI('POST', '/api/users/' + encodeURIComponent(sender) + '/transfer-sessions/' + csTrackingId + '/files', {
+      fileName: prefix + '.zip',
+      fileSize: zipBlob.size,
+      checksum: ''
+    });
+    var fileId = fileReg.fileId || (fileReg.data && fileReg.data.fileId);
+    csSetProgress(55, 'Wird hochgeladen...', sizeMB + ' MB');
+
+    // Upload file content
+    var uploadHeaders = { 'X-CS-MajorApiVersion': '1', 'X-CS-MinorApiVersion': '15', 'Content-Type': 'application/octet-stream' };
+    var uploadResp = await fetch(CS_URL + '/api/users/' + encodeURIComponent(sender) + '/transfer-sessions/' + csTrackingId + '/files/' + fileId + '/content', {
+      method: 'PUT', headers: uploadHeaders, body: zipBlob
+    });
+    if (!uploadResp.ok) throw new Error('Upload fehlgeschlagen: ' + uploadResp.status);
+    csSetProgress(85, 'Transfer wird abgeschlossen...', '');
+
+    // Finalize transfer
+    var final = await csAPI('POST', '/api/users/' + encodeURIComponent(sender) + '/transfer-sessions/' + csTrackingId + '/completion', {});
+    var link = (final.data && final.data.downloadUrl) || (final.downloadUrl) || (CS_URL + '/s/' + csTrackingId);
+    csResultLink = link;
+
+    csSetProgress(100, 'Erfolgreich hochgeladen!', '', '✅');
+    setTimeout(function() {
+      document.getElementById('cs-step3').style.display = 'none';
+      document.getElementById('cs-step4').style.display = 'block';
+      document.getElementById('cs-result-link').textContent = link;
+      toast('Cryptshare Upload erfolgreich!');
+    }, 800);
+
+  } catch(e) {
+    console.error('Cryptshare error:', e);
+    document.getElementById('cs-step3').style.display = 'none';
+    if (e.message.indexOf('Failed to fetch') >= 0 || e.message.indexOf('NetworkError') >= 0) {
+      document.getElementById('cs-cors-err').style.display = 'block';
+      document.getElementById('cs-step1').style.display = 'block';
+    } else {
+      alert('Fehler beim Cryptshare Upload:\n' + e.message + '\n\nBitte lokal speichern.');
+      csReset();
+    }
+  }
+}
+
+function csCopyLink() {
+  if (!csResultLink) return;
+  navigator.clipboard.writeText(csResultLink)
+    .then(function() { toast('Link kopiert!'); })
+    .catch(function() { document.execCommand('copy'); toast('Link kopiert!'); });
+}
+
+function csMailLink() {
+  if (!csResultLink) return;
+  var o = collectOrt();
+  var subj = encodeURIComponent('Unfallprotokoll Sachschaden ' + o.datum + ' ' + o.strasse);
+  var bodyTxt = 'Sehr geehrte Kolleginnen und Kollegen,\n\n'
+    + 'das Unfallprotokoll (Sachschaden) vom ' + o.datum + ' um ' + o.uhrzeit + ' Uhr steht zum Download bereit.\n\n'
+    + 'Unfallort: ' + o.strasse + ', ' + o.gem + '\n'
+    + (o.lat ? 'GPS: maps.google.com/?q=' + o.lat + ',' + o.lon + '\n' : '')
+    + '\nDownload-Link (Cryptshare - verschluesselt, 30 Tage gueltig):\n' + csResultLink
+    + '\n\nMit freundlichen Gruessen\nPI Telfs';
+  var mail = gv('cs-recipient') || gv('f-mail') || '';
+  window.location.href = 'mailto:' + mail + '?subject=' + subj + '&body=' + encodeURIComponent(bodyTxt);
+}
+
+// ---- MISC ----
+function toast(msg) {
   var t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('on');
   clearTimeout(t._t);
-  t._t = setTimeout(function(){ t.classList.remove('on'); }, 3000);
+  t._t = setTimeout(function() { t.classList.remove('on'); }, 3000);
 }
 
-function resetState(){
+function resetState() {
   ct = 0; FZ = []; LE = []; EP = []; FZP = {}; LEP = {};
   fzc = 1; lc = 1; epc = 0;
 }
 
-function resetApp(){
-  if(!confirm('Aktuelle Aufnahme verwerfen?')) return;
+function resetApp() {
+  if (!confirm('Aktuelle Aufnahme verwerfen und neu beginnen?')) return;
   resetState(); startApp();
 }
 
-window.addEventListener('load', function(){
-  if(localStorage.getItem('unfall-d')){
-    document.getElementById('load-btn').textContent = '📂 Entwurf laden (vorhanden)';
+window.addEventListener('load', function() {
+  if (localStorage.getItem('unfall-d')) {
+    document.getElementById('load-btn').textContent = 'Entwurf laden (vorhanden)';
   }
+  ensureOCRDiv();
 });
 </script>
 </body>
